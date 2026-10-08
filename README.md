@@ -40,6 +40,16 @@ Funadansu は、同じ仕組みを小さく、安く、国内で動かせる形�
 | データベース | PostgreSQL（CockroachDB にも対応） |
 | 構成管理 | NixOS、Pulumi |
 
+## 開発環境
+
+開発環境は Nix で用意します。次のコマンドで開発に必要なツール環境に入ることができます。
+
+```sh
+nix develop
+```
+
+`nix develop` を実行すると、開発に必要なツール群（Go、Bun、Node.js、wrangler、Pulumi、sqlc、psql、sops、age）が揃った環境が構築されます。
+
 ## 誰が運用できるか：Do It Yourself の原則
 
 Funadansu は、地域の組織が**自分たちの構成員で**運用することを前提にしています。
