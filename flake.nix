@@ -13,7 +13,7 @@
       in
       {
         devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
+          buildInputs = with pkgs; [
             go
             bun
             nodejs
