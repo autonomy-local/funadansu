@@ -2,7 +2,7 @@
 
 提供者：合同会社オートノミーアソシエーション（以下「提供者」）
 
-本ソフトウェアは、PolyForm Noncommercial License 1.0.0（`LICENSE`）で提供します。
+本ソフトウェアは、[PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) で提供します。
 提供者は、これに加えて、次の条件のもとで本書の許諾（以下「追加の許諾」）を付与します。
 追加の許諾は `LICENSE` の許諾を広げるものであり、狭めるものではありません。
 
