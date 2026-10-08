@@ -50,6 +50,20 @@ nix develop
 
 `nix develop` を実行すると、開発に必要なツール群（Go、Bun、Node.js、wrangler、Pulumi、sqlc、psql、sops、age）が揃った環境が構築されます。
 
+### Nix を入れていない場合
+
+1. Nix を入れます。[Nix の公式のダウンロードページ](https://nixos.org/download) の案内に従ってください（Linux、WSL2、macOS）。インストール後は、新しいターミナルを開き `nix --version` で確かめます。
+2. flakes を有効にします。`~/.config/nix/nix.conf` に次の1行を書きます（複数ユーザーの導入では `/etc/nix/nix.conf` に書き、Nix のデーモンを再起動します）。
+
+   ```
+   experimental-features = nix-command flakes
+   ```
+
+   `nix config show experimental-features` に `flakes` が表示されれば有効です。
+3. リポジトリで `nix develop` を実行し、上のツール群が表示されるか確かめます。
+
+Intel Mac（x86_64-darwin）では、現在の `flake.nix` で Bun が入らず、`nix develop` が失敗します。対応は [Issue #43](https://github.com/autonomy-local/funadansu/issues/43) で扱っています。
+
 ## 誰が運用できるか：Do It Yourself の原則
 
 Funadansu は、地域の組織が**自分たちの構成員で**運用することを前提にしています。
