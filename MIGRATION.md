@@ -6,6 +6,7 @@
 - フェーズの定義：[docs/migration-phases.md](docs/migration-phases.md)
 - 単位の一覧と引き継ぎファイル：[docs/units/](docs/units/README.md)
 - 差分台帳：[docs/spec-deviations.md](docs/spec-deviations.md)
+- セキュリティ：[ADR 0007](docs/decisions/0007-セキュリティの設計方針.md)、[脅威モデル](docs/security/threat-model.md)、[運用の手引き](docs/operations/README.md)
 
 ## いまのフェーズ
 
@@ -39,10 +40,14 @@
 | 2.1 | Nix の開発シェル（`nix develop`） | 未着手 |
 | 2.2 | ローカルの PostgreSQL と旧スキーマの投入 | 未着手 |
 | 3.1〜3.3 | 規約の決定（`docs/conventions.md`） | 未着手 |
+| 3.4 | セキュリティの設計方針（ADR 0007）と脅威モデル（`docs/security/threat-model.md`） | 作業中 |
 | 4.1〜4.5 | bootstrap（Go のサービス、Hono の proxy、イメージ、テスト、疎通） | 未着手 |
 | 5.1〜5.3 | IaC（Pulumi、sops、dev のスタック） | 未着手 |
+| 5.4 | 最小のデプロイの手順（ローカルの CI → `pulumi up`・`nixos-rebuild`）と運用の手引きの初版（`docs/operations/`） | 未着手 |
 | 6.1〜6.4 | 旧基盤の E2E（OpenAPI の収集、URL の切り替え、Funadansu に向けて全部 RED、旧実装のベースライン） | 未着手 |
 | 7.1 | CI | 未着手 |
+| 7.2 | 脆弱性と秘密情報の検査（govulncheck、CodeQL・gosec、秘密情報の検出、Actions の SHA 固定と最小権限、Renovate） | 未着手 |
+| 7.3 | （フェーズ1までに）SBOM、署名、OpenSSF Scorecard | 未着手 |
 | 8.1〜8.3 | 測定の基準（規模、費用、所要時間） | 未着手 |
 
 ## 単位の状況
