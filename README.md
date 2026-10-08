@@ -102,7 +102,7 @@ Funadansu は、2023年に始めた [autonomy-tellus](https://github.com/autonom
 
 ## ライセンス
 
-- 本リポジトリ：[PolyForm Noncommercial License 1.0.0](LICENSE) ＋ [追加の許諾](ADDITIONAL-PERMISSIONS.md)。将来の版について、MIT License に切り替えることがあります
+- 本リポジトリ：[PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) ＋ [追加の許諾](ADDITIONAL-PERMISSIONS.md)。将来の版について、MIT License に切り替えることがあります
 - 元の実装：MIT License, Copyright 2022 NEC Corporation（[NOTICE](NOTICE) を参照）
 
 元の実装を公開してくださった皆さまに感謝します。
