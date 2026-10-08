@@ -84,3 +84,16 @@ body:
         - docs/migration-phases.md の「P0-2　開発環境（Nix）」
     validations:
       required: false
+
+  - type: checkboxes
+    id: fix-consent
+    attributes:
+      label: 修正を提供する場合の同意（任意）
+      description: |
+        自分のフォークでの修正へのリンクをこの Issue に書く場合だけ、チェックしてください。修正がない Issue では空のままで構いません。
+        条件は [CONTRIBUTING.md](https://github.com/autonomy-local/funadansu/blob/main/CONTRIBUTING.md) の「修正の条件」にあります。
+      options:
+        - label: 修正は MIT License で提供します
+        - label: 各コミットに Signed-off-by（DCO）を付けています
+    validations:
+      required: false
