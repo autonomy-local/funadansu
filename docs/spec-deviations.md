@@ -32,13 +32,13 @@
 | --- | --- |
 | 単位 | proxy、operator |
 | 対象 | ログイン、セッション確認のエンドポイント |
-| 仕様 | <OpenAPI の該当箇所> |
+| 仕様 | 旧 operator の OpenAPI（`pxr-operator-service/config/openapi.json`）の `POST /login`、`POST /session`、`POST /logout`、`POST /ind/login`、`POST /ind/session`、`POST /ind/logout`（`openapi/` は未作成） |
 | 元の実装 | 独自のセッションを、リクエストごとにデータベースで確認する |
 | Funadansu | ログイン時にパスワードを確認して JWT を発行し、リクエストごとには JWT の署名を検査する。エンドポイントの形は変えない |
 | 種別 | 意図した変更 |
 | 理由 | リクエストごとのデータベースへのアクセスをなくし、入口（proxy）で認証を完結させるため |
 | 影響 | 切り替えた時点で、元の実装で発行されたセッションは無効になり、利用者は一度ログインし直す。元の実装のセッションのテーブルはフェーズ1・2では使わず、変更もしない |
-| 関連 | <Issue> |
+| 関連 | なし（Issue は未起票） |
 
 ### D-002 大量件数の一括登録
 
