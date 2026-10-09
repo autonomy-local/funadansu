@@ -50,6 +50,32 @@ nix develop
 
 `nix develop` を実行すると、開発に必要なツール群（Go、Bun、Node.js、wrangler、Pulumi、sqlc、psql、sops、age）が揃った環境が構築されます。
 
+### ローカルの PostgreSQL
+
+`nix develop` の中で、次のコマンドでローカルの PostgreSQL を起動します。
+
+```sh
+db-start   # 起動（初回はデータ領域とデータベースを作る）
+db-stop    # 停止
+```
+
+`nix develop` に入らずに `nix run .#db-start`、`nix run .#db-stop` でも実行できます。
+
+| 項目 | 既定の値 | 変えるときの環境変数 |
+| --- | --- | --- |
+| 接続先 | `localhost:5432`（TCP のみ） | `PGPORT` |
+| ユーザー | `postgres`（パスワードなし。ローカルからの接続だけを受ける） | `PGUSER` |
+| データベース | `funadansu` | `PGDATABASE` |
+| データの場所 | リポジトリの `.data/postgres`（Git の管理外） | `PGDATA` |
+
+`nix develop` の中では接続先が環境変数に入っているので、`psql` を引数なしで実行するとこのデータベースにつながります。
+作り直すときは、`db-stop` のあとに `.data/postgres` を削除し、`db-start` を実行します。
+PC を再起動したあとは、もう一度 `db-start` を実行します（データは残ります）。
+
+旧スキーマ（15スキーマ）の投入は、まだ入っていません（[Issue #9](https://github.com/autonomy-local/funadansu/issues/9)）。
+
+起動と停止の確認は `nix flake check` で行えます。
+
 ### Nix を入れていない場合
 
 1. Nix を入れます。[Nix の公式のダウンロードページ](https://nixos.org/download) の案内に従ってください（Linux、WSL2、macOS）。インストール後は、新しいターミナルを開き `nix --version` で確かめます。
