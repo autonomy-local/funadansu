@@ -1,7 +1,7 @@
 # 規約
 
 Funadansu の構成、命名、書き方の決定です。人と AI エージェントが同じ書き方をできるよう、ここに決めて書きます。
-見本は `bootstrap/`（P0-4）に置き、各決定の末尾で示します。
+見本は `bootstrap/` に置き、各決定の末尾で示します。
 
 この文書は、アーキテクチャやコードベースの改善に合わせて随時更新します。決めたことが変わったら、ここを直し、変えた理由を書き添えます。
 
@@ -101,7 +101,7 @@ defer pool.Close()
 operators := operator.NewService(store.New(pool))
 ```
 
-見本の置き場：`bootstrap/internal/platform/`、`bootstrap/internal/<単位>/service.go`、`bootstrap/cmd/funadansu/main.go`（P0-4 で作ります）。
+見本の置き場：`bootstrap/internal/platform/`、`bootstrap/internal/<単位>/service.go`、`bootstrap/cmd/funadansu/main.go`（bootstrap で作ります）。
 
 ## 4. 移植した関数の出典
 
@@ -125,7 +125,7 @@ func (s *Service) FindOperator(ctx context.Context, id string) (Operator, error)
 }
 ```
 
-見本の置き場：`bootstrap/internal/<単位>/`（P0-4 で作ります）。
+見本の置き場：`bootstrap/internal/<単位>/`（bootstrap で作ります）。
 
 ## 5. テストの方針
 
@@ -205,7 +205,7 @@ steps:
     test: current.res.status == 200
 ```
 
-見本の置き場：`bootstrap/internal/operator/`、`test/api/`（P0-4 で作ります）。上の例は、形を示すための見本で、実際の API の内容は P0-4 で確かめます。
+見本の置き場：`bootstrap/internal/operator/`、`test/api/`（bootstrap で作ります）。上の例は、形を示すための見本で、実際の API の内容は bootstrap で確かめます。
 
 ## 6. 「外に出す関数の一覧」の書式
 
@@ -244,7 +244,7 @@ operators := operator.NewService(store.New(pool))
 bookManage := bookmanage.NewService(operators.Find)
 ```
 
-見本の置き場：`bootstrap/cmd/funadansu/main.go`、`docs/units/_template.md`（P0-4 で作ります）。
+見本の置き場：`bootstrap/cmd/funadansu/main.go`、`docs/units/_template.md`（bootstrap で作ります）。
 
 ## 7. ID の型
 
@@ -275,7 +275,7 @@ type PxrID string     // 旧 pxr_id（varchar(255)）。JSON では string
 SELECT id, pxr_id FROM operator WHERE id = $1;
 ```
 
-見本の置き場：`bootstrap/internal/<単位>/id.go`、`bootstrap/internal/<単位>/store/query.sql`（P0-4 で作ります）。
+見本の置き場：`bootstrap/internal/<単位>/id.go`、`bootstrap/internal/<単位>/store/query.sql`（bootstrap で作ります）。
 
 ## 8. エラーの形
 
@@ -386,4 +386,30 @@ logger.WarnContext(ctx, "operator not found", "kind", "application", "err", err)
 {"time":"2026-10-09T08:00:00Z","level":"WARN","msg":"operator not found","kind":"application","request_id":"4f1c…","err":"operator not found"}
 ```
 
-見本の置き場：`bootstrap/internal/platform/log.go`（P0-4 で作ります）。
+見本の置き場：`bootstrap/internal/platform/log.go`（bootstrap で作ります）。
+
+## 10. HTTP サーバーのタイムアウト
+
+### 決定
+
+- `http.Server` には、`ReadHeaderTimeout`、`ReadTimeout`、`WriteTimeout`、`IdleTimeout` を**必ず設定**します。ゼロ（無制限）のままにしません。
+- とくに `ReadHeaderTimeout` は、遅いクライアントによる接続の占有を防ぐため、省きません。
+- 値は設定で持ちます。初期値は bootstrap で決めます。
+
+### 既定の選択
+
+- 初期値は、bootstrap で測ってから決めます（ここでは数値を決めません）。
+
+### 見本
+
+```go
+// bootstrap/cmd/funadansu/main.go（見本。値は例）
+srv := &http.Server{
+	Addr:              cfg.Addr,
+	Handler:           handler,
+	ReadHeaderTimeout: cfg.ReadHeaderTimeout,
+	ReadTimeout:       cfg.ReadTimeout,
+	WriteTimeout:      cfg.WriteTimeout,
+	IdleTimeout:       cfg.IdleTimeout,
+}
+```
