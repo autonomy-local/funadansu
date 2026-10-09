@@ -40,7 +40,8 @@
 | 2.1 | Nix の開発シェル（`nix develop`） | ✅ 完了 |
 | 2.2 | ローカルの PostgreSQL と旧スキーマの投入 | ✅ 完了（`db-start`、`db-init`。[db/README.md](db/README.md)） |
 | 3.1 | 規約の決定：ディレクトリとパッケージの構成、命名、DI を使わない配線（`docs/conventions.md` の本文 1〜3 節） | ✅ 完了 |
-| 3.2〜3.3 | 規約の決定：ID・エラー・ログの形、テストの方針（`docs/conventions.md`） | 未着手 |
+| 3.2 | 規約の決定：ID・エラー・ログの形（`docs/conventions.md`） | 未着手 |
+| 3.3 | 規約の決定：テストの方針、「外に出す関数の一覧」の書式（`docs/conventions.md` の本文 5・6 節） | ✅ 完了 |
 | 3.4 | セキュリティの設計方針（ADR 0007）と脅威モデル（`docs/security/threat-model.md`） | 作業中 |
 | 4.1〜4.5 | bootstrap（Go のサービス、Hono の proxy、イメージ、テスト、疎通） | 未着手 |
 | 5.1〜5.3 | IaC（Pulumi、sops、dev のスタック） | 未着手 |

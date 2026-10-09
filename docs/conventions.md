@@ -11,7 +11,7 @@ Funadansu の構成、命名、書き方の決定です。人と AI エージェ
 | --- | --- | --- |
 | 3.1 | ディレクトリとパッケージの構成、命名、DI を使わない配線（本文の 1〜3 節） | 決定（この版） |
 | 3.2 | ID の型、エラーの形、ログの形 | 未着手 |
-| 3.3 | テストの方針、「外に出す関数の一覧」の書式 | 未着手 |
+| 3.3 | テストの方針（本文の 5 節）、「外に出す関数の一覧」の書式（本文の 6 節） | 決定（この版） |
 
 ## 1. ディレクトリとパッケージの構成
 
@@ -126,3 +126,122 @@ func (s *Service) FindOperator(ctx context.Context, id string) (Operator, error)
 ```
 
 見本の置き場：`bootstrap/internal/<単位>/`（P0-4 で作ります）。
+
+## 5. テストの方針
+
+### 決定
+
+テストは次の3種類を使い分けます。
+
+- **Go の単体テスト**（`*_test.go`、標準の `testing`）：`service.go` の業務の処理と、`platform/` の部品を確かめます。表駆動（`t.Run` で各行を試す）で書きます。
+- **エンドポイントのテスト**（標準の `net/http/httptest`）：`handler.go` の入口を、旧 API のパスと形のまま確かめます。ステータス、JSON の形、エラーの形を見ます。
+- **API のシナリオテスト**（runn、YAML）：複数のエンドポイントをつなぐ流れを確かめます。テストデータもここで投入します。置き場は `test/api/<単位>/` です。
+- **旧基盤の E2E**（`test/e2e/`）は、互換を確かめる**外の物差し**です。Funadansu の実装に合わせて書き換えません。フェーズ0では Funadansu に向けて全部 RED から始めます（[MIGRATION.md](../MIGRATION.md) の 6.x）。
+- **モックは極力使いません**。DB を使う部分は、モックの代わりに、`db-start` で起動するローカルの PostgreSQL で試します。
+- **テストデータ**は、単体テストでは各テストの中に書き、API のシナリオでは runn の中に書きます。共通の fixture ファイルは、必要になってから決めます。
+- **旧 E2E が仕様と食い違う場合**は、テストを直さず、[差分台帳](spec-deviations.md) に書き、Issue で相談します（AGENTS.md の「互換性」）。
+- **変更には、それを確かめるテストを付けます**。テストの実行コマンド（`make test`、`make e2e BASE_URL=...`）は、フェーズ0で確定させます。
+
+### 既定の選択
+
+- runn は nix の開発シェルで入れ、バージョンを固定します（Go の依存には入れません）。
+- 旧 E2E は、フェーズ0の 6.x で `test/e2e/` に置きます。エンドポイントのテストと区別するため、単体テストの中では旧 E2E を呼びません。
+
+### 見本
+
+```go
+// internal/operator/service_test.go（実際の DB を使う。モックは使わない）
+func TestFindOperator(t *testing.T) {
+	tests := []struct {
+		name    string
+		id      string
+		want    Operator
+		wantErr error
+	}{
+		{name: "存在する", id: "op-1", want: Operator{ID: "op-1"}},
+		{name: "存在しない", id: "op-x", wantErr: ErrNotFound},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewService(testStore(t)) // 各テストで DB を用意する（testStore は同じパッケージの helper）
+			got, err := svc.FindOperator(context.Background(), tt.id)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("err = %v, want %v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("got = %+v, want %+v", got, tt.want)
+			}
+		})
+	}
+}
+```
+
+```go
+// internal/operator/handler_test.go（httptest で入口を確かめる）
+func TestLoginHandler(t *testing.T) {
+	h := NewHandler(NewService(testStore(t)))
+	req := httptest.NewRequest(http.MethodPost, "/operator/login", strings.NewReader(`{"id":"op-1"}`))
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+}
+```
+
+```yaml
+# test/api/operator/login.yml（runn。テストデータは steps の中に書く）
+desc: オペレーターのログイン
+runners:
+  req: http://localhost:8080
+steps:
+  login:
+    req:
+      /operator/login:
+        post:
+          body:
+            application/json:
+              id: op-1
+    test: current.res.status == 200
+```
+
+見本の置き場：`bootstrap/internal/operator/`、`test/api/`（P0-4 で作ります）。上の例は、形を示すための見本で、実際の API の内容は P0-4 で確かめます。
+
+## 6. 「外に出す関数の一覧」の書式
+
+### 決定
+
+- **場所**：`docs/units/<単位>.md` の「外に出す関数の一覧」の節に書きます。書式は [_template.md](units/_template.md) の表を使います（関数、入力、出力、説明）。
+- **関数の欄**：Go の関数名と、引数・戻り値を、実際のシグネチャどおりに書きます。`ctx` は必ず最初の引数です（本文 3 節）。
+- **入力・出力の欄**：引数と戻り値の型を書きます。型が別の単位のものなら、その単位の一覧に載っている型だけを使います。
+- **対象**：他の単位が呼んでよい関数だけを書きます。単位の中だけで使う関数は書きません。1行に1関数です。
+- **配線**：呼ぶ側の単位は、一覧に載っている関数だけを、`cmd/funadansu/main.go` でコンストラクタの引数として渡します（本文 3 節）。一覧に無い関数は渡しません。
+- **変更の手順**：一覧を変えたら、同じ作業の中で、呼ぶ側の単位の引き継ぎファイルの「依存」の表も直します。関数を消すとき、シグネチャを変えるときは、呼ぶ側を先に直します。
+- **確かめ方**：レビューで、一覧と `main.go` の配線を照らし合わせます。
+
+### 既定の選択
+
+- 一覧は**手で書きます**。生成はしません（一覧の正しさは、人がレビューで確かめます）。
+- 「依存」の表（引き継ぎファイルの 2 節）と、この一覧はセットで直します。
+
+### 見本
+
+次は架空の単位（`operator`）の引き継ぎファイルに書く例です。
+
+```markdown
+## 外に出す関数の一覧
+
+| 関数 | 入力 | 出力 | 説明 |
+| --- | --- | --- | --- |
+| `Find(ctx context.Context, id OperatorID) (Operator, error)` | `id`：オペレーターの ID | `Operator`、`error`（見つからないときは `ErrNotFound`） | オペレーターを ID で探す |
+```
+
+呼ぶ側（例：`book-manage`）は、`main.go` で次のように渡します。
+
+```go
+// cmd/funadansu/main.go（配線はここだけ）
+operators := operator.NewService(store.New(pool))
+bookManage := bookmanage.NewService(operators.Find)
+```
+
+見本の置き場：`bootstrap/cmd/funadansu/main.go`、`docs/units/_template.md`（P0-4 で作ります）。
