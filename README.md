@@ -72,9 +72,22 @@ db-stop    # 停止
 作り直すときは、`db-stop` のあとに `.data/postgres` を削除し、`db-start` を実行します。
 PC を再起動したあとは、もう一度 `db-start` を実行します（データは残ります）。
 
-旧スキーマ（15スキーマ）の投入は、まだ入っていません（[Issue #9](https://github.com/autonomy-local/funadansu/issues/9)）。
+### 旧スキーマの投入
 
-起動と停止の確認は `nix flake check` で行えます。
+起動した PostgreSQL に、旧スキーマ（15スキーマ、108 表）を空の表として作ります。
+
+```sh
+db-start   # まだなら起動する
+db-init    # db/*/*.sql を順に流す（何度流しても安全）
+```
+
+`db-init` が終わると「旧スキーマ：15 個」と表示されます。`psql -c '\dn'` でスキーマを、`psql -c '\dt pxr_*.*'` で表を確かめられます。
+各スキーマがどの旧サービスの定義から組み立てたかは [db/README.md](db/README.md) にあります。
+
+旧 DB の実物（旧 ormconfig の `pxr_pod`）とは、データベースの名前が違います。ここでは `PGDATABASE`（既定は `funadansu`）の中に、旧スキーマと同じ名前のスキーマを作ります。
+DDL は旧実装のエンティティから起こしたもので、動いている旧 DB との差は、移行の作業（フェーズ3）で確かめて扱います。
+
+起動と停止、旧スキーマの投入の確認は `nix flake check` で行えます。
 
 ### Nix を入れていない場合
 
