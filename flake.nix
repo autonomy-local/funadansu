@@ -65,9 +65,29 @@
             fi
           '';
         };
+
+        # db/<スキーマ>/*.sql を順に流し、旧スキーマ（テーブルは空）を作る。
+        # 各 DDL は IF NOT EXISTS なので、何度流しても安全。
+        db-init = pkgs.writeShellApplication {
+          name = "db-init";
+          runtimeInputs = with pkgs; [ postgresql coreutils findutils ];
+          text = dbEnv + ''
+            if ! pg_isready --quiet; then
+              echo "PostgreSQL が起動していません。先に db-start を実行してください。" >&2
+              exit 1
+            fi
+            # DDL の IF NOT EXISTS が出す NOTICE（既存の表の表示）は抑える。
+            export PGOPTIONS="-c client_min_messages=warning"
+            find "$root/db" -name '*.sql' | sort | while read -r file; do
+              psql --set=ON_ERROR_STOP=1 --quiet --file="$file" >/dev/null
+            done
+            count="$(psql --tuples-only --no-align --command="SELECT count(*) FROM information_schema.schemata WHERE schema_name LIKE 'pxr\_%'")"
+            echo "旧スキーマ：$count 個（データベース $PGDATABASE）"
+          '';
+        };
       in
       {
-        packages = { inherit db-start db-stop; };
+        packages = { inherit db-start db-stop db-init; };
 
         # db-start で起動し、接続でき、db-stop で止まることを確かめる。
         checks.db = pkgs.runCommand "funadansu-db-check"
@@ -85,6 +105,21 @@
             touch $out
           '';
 
+        # db-init で旧スキーマ（15スキーマ、108 表）が立ち、表が空であることを確かめる。
+        checks.db-init = pkgs.runCommand "funadansu-db-init-check"
+          { nativeBuildInputs = [ db-start db-init db-stop pkgs.postgresql ]; }
+          ''
+            cp -r ${self} work && chmod -R u+w work && cd work
+            export PGPORT=54330
+            db-start
+            db-init
+            test "$(psql --tuples-only --no-align --command="SELECT count(*) FROM information_schema.schemata WHERE schema_name LIKE 'pxr\_%'")" = 15
+            test "$(psql --tuples-only --no-align --command="SELECT count(*) FROM information_schema.tables WHERE table_schema LIKE 'pxr\_%'")" = 108
+            test "$(psql --tuples-only --no-align --command="SELECT COALESCE(SUM(n_live_tup), 0) FROM pg_stat_user_tables WHERE schemaname LIKE 'pxr\_%'")" = 0
+            db-stop
+            touch $out
+          '';
+
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             go
@@ -98,6 +133,7 @@
             age
             db-start
             db-stop
+            db-init
           ];
 
           # psql などが、引数なしでローカルの PostgreSQL につながるようにする。
