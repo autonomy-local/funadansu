@@ -102,3 +102,27 @@ operators := operator.NewService(store.New(pool))
 ```
 
 見本の置き場：`bootstrap/internal/platform/`、`bootstrap/internal/<単位>/service.go`、`bootstrap/cmd/funadansu/main.go`（P0-4 で作ります）。
+
+## 4. 移植した関数の出典
+
+旧実装（`legacy/` の該当サービス）から移した関数には、出典を残します。NOTICE の表示と、MIT License の条件を満たすためです。
+
+### 決定
+
+- **関数レベルの出典**：移植元の GitHub の該当コードへのリンクと、関数名を、関数の直前のコメントに書きます。リンクは、旧実装のコミットのハッシュを含む固定のリンクにします（`main` のリンクは、後で中身が変わるため使いません）。
+- **集約や変更がある場合**：複数の旧関数をまとめたとき、または処理を変えたときは、Go のコードコメントで、どの関数から何を変えたかを書きます。
+- **書く場所**：コメントは関数の直前に置きます。PR 本文の「移植か、新規か」と引き継ぎファイルの「移植と新規」にも、同じ出典を書きます。
+- **新規に書いた関数**には、出典のコメントを付けません。
+
+### 見本
+
+```go
+// Migrated from: https://github.com/autonomy-local/<旧リポジトリ>/blob/<コミット>/src/<ファイル>#L10-L40
+// function: findOperatorByID
+// Changed: 旧実装の二つのクエリを、store の一つのクエリにまとめた。
+func (s *Service) FindOperator(ctx context.Context, id string) (Operator, error) {
+	// ...
+}
+```
+
+見本の置き場：`bootstrap/internal/<単位>/`（P0-4 で作ります）。
