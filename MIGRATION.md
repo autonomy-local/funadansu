@@ -35,7 +35,7 @@
 | --- | --- | --- |
 | 1.1 | リポジトリの作成、`main` の保護 | ✅ 完了 |
 | 1.2 | README、LICENSE、ADDITIONAL-PERMISSIONS、NOTICE、ADOPTERS、SECURITY.md | ✅ 完了 |
-| 1.3 | CONTRIBUTING、AGENTS.md・CLAUDE.md、MIGRATION.md、`docs/units/`、差分台帳、`docs/decisions/` | 作業中 |
+| 1.3 | CONTRIBUTING、AGENTS.md・CLAUDE.md、MIGRATION.md、`docs/units/`、差分台帳、`docs/decisions/` | ✅ 完了 |
 | 1.4 | 旧構想（autonomy-tellus）からのリンクとアーカイブ | ✅ 完了 |
 | 2.1 | Nix の開発シェル（`nix develop`） | ✅ 完了 |
 | 2.2 | ローカルの PostgreSQL と旧スキーマの投入 | 作業中（PostgreSQL の起動まで。旧スキーマの投入は未着手） |
