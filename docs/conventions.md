@@ -12,6 +12,7 @@ Funadansu の構成、命名、書き方の決定です。人と AI エージェ
 | 3.1 | ディレクトリとパッケージの構成、命名、DI を使わない配線（本文の 1〜3 節） | 決定（この版） |
 | 3.2 | ID の型、エラーの形、ログの形（本文の 7〜9 節） | 決定（この版） |
 | 3.3 | テストの方針（本文の 5 節）、「外に出す関数の一覧」の書式（本文の 6 節） | 決定（この版） |
+| 3.4 | 実行の設定、起動と終了、静的検査（本文の 11・12 節） | 決定（この版） |
 
 ## 1. ディレクトリとパッケージの構成
 
@@ -413,3 +414,43 @@ srv := &http.Server{
 	IdleTimeout:       cfg.IdleTimeout,
 }
 ```
+
+## 11. 実行の設定と起動
+
+### 決定
+
+- **Go の版**：`go.mod` の `go` 行は Nix の `go` と揃えます。`toolchain` 行は書きません。版は `go_1_xx` の名前で固定し、上げるときは `go.mod` と一緒に変えます。
+- **GOTOOLCHAIN**：開発シェルと CI で `GOTOOLCHAIN=local` を設定します。Go が版を自動で取りに行かないようにするためです。
+- **GOMAXPROCS**：Go 1.25 以上を使い、CPU の上限は Go の標準の動きに任せます。`automaxprocs` などの外部の依存は入れません。
+- **GOMEMLIMIT**：
+  - 比率は設定の `FUNADANSU_MEMORY_LIMIT_RATIO` で持ち、初期値は 0.9 です。メモリに関わる不具合が出たら下げます。
+  - 割り当てのバイト数は設定の `FUNADANSU_MEMORY_LIMIT_BYTES` で明示します。VPS は PostgreSQL と同じ機械で動くため、機械全体のメモリを割り当てにしません。
+  - 設定が無いときは、cgroup の上限（`memory.max`）を読みます。上限が無ければ、メモリの上限は設定しません。
+  - 環境変数 `GOMEMLIMIT` が既にあれば、それを優先し、アプリでは上書きしません。
+- **起動時の system ログ**：版と実行の設定を1行で出します。キーは `go_version`、`gomaxprocs`、`gomemlimit`（バイト数、または `off`）、`memory_source`（`config`、`cgroup`、`none` のどれか）です。
+- **設定の検証**：必須の値が無い、または形が不正なら、すぐに終了します。エラーには値を出さず、キーの名前だけを出します。
+- **待ち受け**：既定は `127.0.0.1` で待ち受けます（ADR 0007 の経路の制限）。Cloud Run では `FUNADANSU_ADDR` を `0.0.0.0:$PORT` と明示して設定します。
+- **終了**：`signal.NotifyContext` で SIGINT と SIGTERM を受け、`http.Server.Shutdown` に時限を付けます。時限は `FUNADANSU_SHUTDOWN_TIMEOUT` で持ち、初期値は 8 秒です（Cloud Run の猶予 10 秒に収めるため）。DB の接続は、サーバーを止めたあとに閉じます。
+- **ヘルスチェック**：`/healthz`（生存の確認。DB に触れない）と `/readyz`（DB の ping。短い時限）を分けて持ちます。どちらも proxy では公開しません。
+- **リクエストの量**：サービス側でも `http.MaxBytesReader` で本文の上限を決めます。proxy の制限だけに頼りません。
+- **panic の回復**：ミドルウェアで recover し、`kind` を `system` にして記録します。応答は想定外のエラーの形（503）で返します（8 節）。
+- **DB の文の時限**：接続ごとに `statement_timeout` を設定します。値は bootstrap で決めます。
+- **デバッグ用の口**（pprof、expvar など）：既定では無効にします。有効にするときは localhost の別のポートだけで待ち受けます。
+- **時刻**：時刻は UTC で扱い、DB では `timestamptz` を使います。`time/tzdata` は入れません。
+
+### 既定の選択
+
+- 上の数値（比率 0.9、時限 8 秒）は初期値です。計測して変えるときは、この節を直します。
+
+## 12. 版と静的検査
+
+### 決定
+
+- **リリースのビルド**：`CGO_ENABLED=0` と `-trimpath` で作ります。`-s -w` は付けません（障害の調査のため）。
+- **テスト**：`go test -race` は CGO を使うため、テストだけ `CGO_ENABLED=1` で回します。リリースのビルドとは分けます。
+- **CI の検査**：`gofmt -l`（差分が出たら失敗）、`go vet`、`staticcheck`、`go mod tidy` の差分の確認、`go mod verify` を入れます。`govulncheck` は ADR 0007 の CI の項目として入れます。
+- **CI の実行環境**：Nix の開発シェルと同じ `go` を使います。CI で別の版を入れないようにします。
+
+### 既定の選択
+
+- 静的検査の版は、Nix の開発シェルに入れて固定します（Go の依存には入れません）。
