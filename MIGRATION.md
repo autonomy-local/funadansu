@@ -68,6 +68,15 @@
 
 状態は「未着手 / 作業中 / 完了」で書きます。
 
+## 対象外
+
+次の 2 群は、移植の対象から明示で外します。決めたのは 2026-10-09、ヤマシタです。
+
+- 非公開レポ：ddl、catalog、manifest、fluentd、nginx、ext-idp-linkage-plugin、test（テスト用ツールとテスト結果）を含む群。組織内で読み取れず、公開された OSS の範囲ではないため対象外とします。
+- 公開レポにない呼び出し先：info-account-manage、audit、outsideStoreService、share-trigger。組織にも pxr-linkage にもソースがなく、出し口として扱うため対象外とします。
+
+対象は、組織の公開レポにあるサービスです。
+
 ## 旧基盤の E2E の推移
 
 | 日付 | 対象 | 通過 | 失敗 | 備考 |
