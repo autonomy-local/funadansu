@@ -1,0 +1,150 @@
+desc: "旧 book-manage の本人性確認書類の取得（14-01.Identification.spec.ts の 2 件）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-book-manage-service/blob/3e2082aee9f3f58beb3dd57a1df4e00873d3e8c5/src/tests/14-01.Identification.spec.ts。記録した要求と応答を写した（スタブ・モックなし）"
+runners:
+  bm: __FUNADANSU_E2E_BM_URL__
+  db: __FUNADANSU_E2E_BM_DB__
+steps:
+  - desc: "前提の初期化（beforeAll の initialData.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- 対象テーブルのデータをすべて削除
+        DELETE FROM pxr_book_manage.terms_of_use_notification_ind;
+        DELETE FROM pxr_book_manage.terms_of_use_notification;
+        DELETE FROM pxr_book_manage.mcd_output_code_data_file;
+        DELETE FROM pxr_book_manage.mcd_output_code_data_type;
+        DELETE FROM pxr_book_manage.mcd_output_code_actor;
+        DELETE FROM pxr_book_manage.my_condition_data_output_code;
+        DELETE FROM pxr_book_manage.user_id_cooperate;
+        DELETE FROM pxr_book_manage.identification;
+        DELETE FROM pxr_book_manage.temporarily_shared_code;
+        DELETE FROM pxr_book_manage.data_operation_data_type;
+        DELETE FROM pxr_book_manage.data_operation_data;
+        DELETE FROM pxr_book_manage.data_operation;
+        DELETE FROM pxr_book_manage.region_use;
+        DELETE FROM pxr_book_manage.tou_consent;
+        DELETE FROM pxr_book_manage.mcd_alteration_data;
+        DELETE FROM pxr_book_manage.mcd_alteration_actor;
+        DELETE FROM pxr_book_manage.mcd_alteration;
+        DELETE FROM pxr_book_manage.data_operation_notification_ind;
+        DELETE FROM pxr_book_manage.data_operation_notification;
+        DELETE FROM pxr_book_manage.my_condition_book;
+        DELETE FROM pxr_book_manage.share_source_source;
+        DELETE FROM pxr_book_manage.share_source_datatype;
+        DELETE FROM pxr_book_manage.store_event_notificate;
+        DELETE FROM pxr_book_manage.stopped_region;
+        
+        -- 対象テーブルのシーケンスを初期化
+        SELECT SETVAL('pxr_book_manage.my_condition_book_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.user_id_cooperate_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.identification_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.data_operation_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.data_operation_data_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.data_operation_data_type_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.region_use_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.terms_of_use_notification_ind_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.terms_of_use_notification_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.tou_consent_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.my_condition_data_output_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.mcd_output_code_data_type_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.mcd_output_code_actor_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.mcd_output_code_data_file_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.mcd_alteration_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.mcd_alteration_actor_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.data_operation_notification_ind_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.data_operation_notification_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.mcd_alteration_data_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.share_source_source_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.share_source_datatype_id_seq', 1, false);
+        SELECT SETVAL('pxr_book_manage.stopped_region_id_seq', 1, false);
+  - desc: "1. book-manage API 本人性確認書類の取得 Bookがない"
+    bm:
+      "/book-manage/ind/identification":
+        get:
+          headers:
+            "accept": "application/json"
+            "content-type": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22pxrId%22%3A%2258di2dfse2.test.org%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22auth%22%3A%7B%22book%22%3A%7B%22create%22%3Atrue%7D%7D%2C%22block%22%3A%7B%22_value%22%3A1000112%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000004%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"PXR-IDからブックが取得できませんでした\""
+  - desc: "「正常」の前の INSERT（my_condition_book）"
+    db:
+      query: |
+        INSERT INTO pxr_book_manage.my_condition_book (
+        id,
+        pxr_id,
+        status,
+        book_close_available,
+        book_close_available_at,
+        attributes,
+        appendix,
+        force_deletion_flag,
+        is_disabled,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
+        ) VALUES (
+        1,
+        '58di2dfse2.test.org',
+        0,
+        false,
+        null,
+        '{}',
+        null,
+        false,
+        false,
+        'system',
+        now(),
+        'system',
+        now()
+        );
+        INSERT INTO pxr_book_manage.identification (
+        id,
+        book_id,
+        identification_code,
+        identification_version,
+        template,
+        template_hash,
+        is_disabled,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
+        ) VALUES (
+        1,
+        1,
+        300001,
+        1,
+        '{"a": "aaaaaaa"}',
+        'a',
+        false,
+        'system',
+        now(),
+        'system',
+        now()
+        ),(
+        2,
+        1,
+        300001,
+        1,
+        '{"b": "bbbbbbbbb"}',
+        'a',
+        false,
+        'system',
+        now(),
+        'system',
+        now()
+        );
+  - desc: "2. book-manage API 本人性確認書類の取得 正常"
+    bm:
+      "/book-manage/ind/identification":
+        get:
+          headers:
+            "accept": "application/json"
+            "content-type": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22pxrId%22%3A%2258di2dfse2.test.org%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22auth%22%3A%7B%22book%22%3A%7B%22create%22%3Atrue%7D%7D%2C%22block%22%3A%7B%22_value%22%3A1000112%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000004%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+    test: "current.res.status == 200 && len(current.res.body) == 2 && current.res.body[\"pxrId\"] == \"58di2dfse2.test.org\" && current.res.body[\"identifications\"] == [{\"a\":\"aaaaaaa\"},{\"b\":\"bbbbbbbbb\"}]"

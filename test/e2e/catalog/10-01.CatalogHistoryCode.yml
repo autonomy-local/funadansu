@@ -1,0 +1,478 @@
+desc: "旧 catalog の試験（10-01.CatalogHistoryCode.spec.ts）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-catalog-service/blob/14a647d0e01247844a86442b136ebde6a0f1cef3/src/tests/10-01.CatalogHistoryCode.spec.ts。記録した要求と応答、および試験が DB に流した SQL を、順番どおりに写した（スタブ・モックなし）"
+runners:
+  ct: __FUNADANSU_E2E_CT_URL__
+  db: __FUNADANSU_E2E_CT_DB__
+steps:
+  - desc: "前提：試験の DB を空にする（試験の間で状態を持ち越さないため。旧試験の DB の初期状態に当たる）"
+    db:
+      query: |
+        TRUNCATE pxr_catalog.catalog_update_set, pxr_catalog.catalog_item_attribute, pxr_catalog.catalog, pxr_catalog.catalog_item, pxr_catalog.catalog_relationship, pxr_catalog.catalog_code_scope, pxr_catalog.cmatrix_index, pxr_catalog.item_template, pxr_catalog.ns, pxr_catalog.property_candidate, pxr_catalog.template_code, pxr_catalog.template_property, pxr_catalog.update_set, pxr_catalog.attribute_update_set, pxr_catalog.ns_update_set CASCADE
+  - desc: "試験の DB 準備（initialData.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- 対象テーブルのデータをすべて削除
+        DELETE FROM pxr_catalog.attribute_update_set;
+        DELETE FROM pxr_catalog.catalog_update_set;
+        DELETE FROM pxr_catalog.ns_update_set;
+        DELETE FROM pxr_catalog.update_set;
+        DELETE FROM pxr_catalog.catalog_code_scope;
+        DELETE FROM pxr_catalog.catalog_relationship;
+        DELETE FROM pxr_catalog.catalog_item_attribute;
+        DELETE FROM pxr_catalog.cmatrix_index;
+        DELETE FROM pxr_catalog.property_candidate;
+        DELETE FROM pxr_catalog.template_code;
+        DELETE FROM pxr_catalog.template_property;
+        DELETE FROM pxr_catalog.item_template;
+        DELETE FROM pxr_catalog.catalog_item;
+        DELETE FROM pxr_catalog.catalog;
+        DELETE FROM pxr_catalog.ns;
+        
+        -- 対象テーブルのシーケンスを初期化
+        SELECT SETVAL('pxr_catalog.catalog_update_set_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.ns_update_set_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.update_set_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.catalog_code_scope_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.catalog_relationship_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.catalog_item_attribute_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.cmatrix_index_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.property_candidate_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.template_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.template_property_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.item_template_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.catalog_item_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.ns_id_seq', 1, false);
+  - desc: "試験の DB 準備（activate.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- アクティベート
+        INSERT INTO pxr_catalog.catalog
+        (
+        id, name, description, ext_name,
+        attributes, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        '8669de76-5843-4581-b61a-e73b642bf1e0',
+        'PXRカタログ',
+        '組織が運営するPLR基盤が提供するデータカタログです。',
+        'test-org',
+        NULL, false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+  - desc: "試験の DB 準備（catalogCodeScope.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        
+        -- カタログコード範囲にすべて削除
+        DELETE FROM pxr_catalog.catalog_code_scope;
+        SELECT SETVAL('pxr_catalog.catalog_code_scope_id_seq', 1, false);
+        
+        -- カタログコード範囲にデータを追加
+        INSERT INTO pxr_catalog.catalog_code_scope
+        (
+        type, start_code, end_code, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'model',
+        1,
+        10000,
+        false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.catalog_code_scope
+        (
+        type, start_code, end_code, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'built_in',
+        10001,
+        1000000,
+        false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.catalog_code_scope
+        (
+        type, start_code, end_code, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'ext',
+        1000001,
+        10000000,
+        false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+  - desc: "試験の DB 準備（nameSpace.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- ネームスペースを全て削除
+        DELETE FROM pxr_catalog.ns;
+        SELECT SETVAL('pxr_catalog.ns_id_seq', 1, false);
+        
+        -- ネームスペースを追加
+        -- 基本データ用
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'model', 'catalog/model/unit-test', 'ユニットテスト用(model)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'model', 'catalog/model/cmatrix/unit-test', 'ユニットテスト用(cmatrix-model)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'built_in', 'catalog/built_in/unit-test', 'ユニットテスト用(built_in)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'built_in', 'catalog/built_in/cmatrix/unit-test', 'ユニットテスト用(cmatrix-built_in)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'ext', 'catalog/ext/unit-test', 'ユニットテスト用(ext)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'ext', 'catalog/ext/cmatrix/unit-test', 'ユニットテスト用(cmatrix-ext)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'ext', 'catalog/ext/test-org/unit-test', 'ユニットテスト用(extname-ext)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+  - desc: "試験の DB 準備（initialCatalogHistoryCode.sql）"
+    db:
+      query: |
+        INSERT INTO pxr_catalog.catalog_item
+        (
+        id, code, version, ns_id, name, description,
+        inherit_code, inherit_version, is_reserved, is_disabled,
+        response,
+        attributes,
+        created_by, created_at, updated_by, updated_at
+        ) VALUES
+        (
+        101, 1000001, 1, 5, 'ユニットテスト', 'ユニットテスト用(ext)',
+        NULL, NULL, False, False,
+        '{ "catalogItem": { "ns": "catalog/ext/unit-test", "name": "ユニットテスト", "_code": { "_value": 1000001, "_ver": 1 }, "inherit": null, "description": null }, "template": { "_code": { "_value": 1000001, "_ver": 1 } }, "prop": null, "value": null, "attribute": null }',
+        NULL,
+        'catalog_registrant', '2021/11/10 11:30:01.087', 'catalog_registrant', '2021/11/10 11:30:01.087'
+        ),
+        (
+        102, 1000001, 2, 5, 'ユニットテスト', 'ユニットテスト用(ext)',
+        NULL, NULL, False, False,
+        '{ "catalogItem": { "ns": "catalog/ext/unit-test", "name": "ユニットテスト", "_code": { "_value": 1000001, "_ver": 2 }, "inherit": null, "description": null }, "template": { "_code": { "_value": 1000001, "_ver": 2 } }, "prop": null, "value": null, "attribute": null }',
+        NULL,
+        'catalog_registrant', '2021/11/10 11:31:01.087', 'catalog_registrant', '2021/11/10 11:31:01.087'
+        ),
+        (
+        103, 1000001, 3, 5, 'ユニットテスト', 'ユニットテスト用(ext,論理削除)',
+        NULL, NULL, False, true,
+        '{ "catalogItem": { "ns": "catalog/ext/unit-test", "name": "ユニットテスト", "_code": { "_value": 1000001, "_ver": 3 }, "inherit": null, "description": null }, "template": { "_code": { "_value": 1000001, "_ver": 3 } }, "prop": null, "value": null, "attribute": null }',
+        NULL,
+        'catalog_registrant', '2021/11/10 11:32:01.087', 'catalog_registrant', '2021/11/10 11:32:01.087'
+        ),
+        (
+        104, 1000001, 4, 5, 'ユニットテスト', 'ユニットテスト用(ext)',
+        NULL, NULL, False, False,
+        '{ "catalogItem": { "ns": "catalog/ext/unit-test", "name": "ユニットテスト", "_code": { "_value": 1000001, "_ver": 4 }, "inherit": null, "description": null }, "template": { "_code": { "_value": 1000001, "_ver": 4 } }, "prop": null, "value": null, "attribute": null }',
+        NULL,
+        'catalog_registrant', '2021/11/10 11:32:01.087', 'catalog_registrant', '2021/11/10 11:32:01.087'
+        ),
+        (
+        105, 1000001, 5, 5, 'ユニットテスト', 'ユニットテスト用(ext)',
+        NULL, NULL, False, False,
+        '{ "catalogItem": { "ns": "catalog/ext/unit-test", "name": "ユニットテスト", "_code": { "_value": 1000001, "_ver": 5 }, "inherit": null, "description": null }, "template": { "_code": { "_value": 1000001, "_ver": 5 } }, "prop": null, "value": null, "attribute": null }',
+        NULL,
+        'catalog_registrant', '2021/11/10 11:32:01.087', 'catalog_registrant', '2021/11/10 11:32:01.087'
+        ),
+        (
+        106, 1000002, 1, 5, 'ユニットテスト', 'ユニットテスト用(ext)',
+        NULL, NULL, False, False,
+        '{ "catalogItem": { "ns": "catalog/ext/unit-test", "name": "ユニットテスト", "_code": { "_value": 1000002, "_ver": 1 }, "inherit": null, "description": null }, "template": { "_code": { "_value": 1000002, "_ver": 1 } }, "prop": null, "value": null, "attribute": null }',
+        NULL,
+        'catalog_registrant', '2021/11/10 11:30:01.087', 'catalog_registrant', '2021/11/10 11:30:01.087'
+        )
+        ;
+  - desc: "1. カタログ履歴取得(/history/:code) 異常:codeが有効範囲外の数値(1より小さい)"
+    ct:
+      "/catalog/history/0?min=1":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"code\\\",\\\"value\\\":null,\\\"message\\\":\\\"最小値を下回っています\\\"}]}\")"
+  - desc: "2. カタログ履歴取得(/history/:code) 異常:codeが有効範囲外の数値(Number.MAX_SAFE_INTEGERより大きい)"
+    ct:
+      "/catalog/history/9007199254740992?min=1":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"code\\\",\\\"value\\\":9007199254740992,\\\"message\\\":\\\"最大値を上回っています\\\"}]}\")"
+  - desc: "3. カタログ履歴取得(/history/:code) 異常:minが未指定"
+    ct:
+      "/catalog/history/1000001":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"min\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "4. カタログ履歴取得(/history/:code) 異常:minが有効範囲外の数値(1より小さい)"
+    ct:
+      "/catalog/history/1000001?min=0":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"min\\\",\\\"value\\\":null,\\\"message\\\":\\\"最小値を下回っています\\\"}]}\")"
+  - desc: "5. カタログ履歴取得(/history/:code) 異常:minが有効範囲外の数値(Number.MAX_SAFE_INTEGERより大きい)"
+    ct:
+      "/catalog/history/1000001?min=9007199254740992":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"min\\\",\\\"value\\\":9007199254740992,\\\"message\\\":\\\"最大値を上回っています\\\"}]}\")"
+  - desc: "6. カタログ履歴取得(/history/:code) 異常:minが数値以外"
+    ct:
+      "/catalog/history/1000001?min=test":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"min\\\",\\\"value\\\":null,\\\"message\\\":\\\"数値ではありません\\\"},{\\\"property\\\":\\\"min\\\",\\\"value\\\":null,\\\"message\\\":\\\"最大値を上回っています\\\"},{\\\"property\\\":\\\"min\\\",\\\"value\\\":null,\\\"message\\\":\\\"最小値を下回っています\\\"}]}\")"
+  - desc: "7. カタログ履歴取得(/history/:code) 異常:minが取得対象カタログの最新バージョンより大きい"
+    ct:
+      "/catalog/history/1000001?min=100":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 404 && current.res.body == fromJSON(\"{\\\"status\\\":404,\\\"message\\\":\\\"対象カタログがありません\\\"}\")"
+  - desc: "8. カタログ履歴取得(/history/:code) 異常:maxが有効範囲外の数値(1より小さい)"
+    ct:
+      "/catalog/history/1000001?min=1&max=0":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"max\\\",\\\"value\\\":null,\\\"message\\\":\\\"最小値を下回っています\\\"}]}\")"
+  - desc: "9. カタログ履歴取得(/history/:code) 異常:maxが有効範囲外の数値(Number.MAX_SAFE_INTEGERより大きい)"
+    ct:
+      "/catalog/history/1000001?min=1&max=9007199254740992":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"max\\\",\\\"value\\\":9007199254740992,\\\"message\\\":\\\"最大値を上回っています\\\"}]}\")"
+  - desc: "10. カタログ履歴取得(/history/:code) 異常:maxが数値以外"
+    ct:
+      "/catalog/history/1000001?min=1&max=test":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"max\\\",\\\"value\\\":null,\\\"message\\\":\\\"数値ではありません\\\"},{\\\"property\\\":\\\"max\\\",\\\"value\\\":null,\\\"message\\\":\\\"最大値を上回っています\\\"},{\\\"property\\\":\\\"max\\\",\\\"value\\\":null,\\\"message\\\":\\\"最小値を下回っています\\\"}]}\")"
+  - desc: "11. カタログ履歴取得(/history/:code) 異常:maxがminより大きい"
+    ct:
+      "/catalog/history/1000001?min=2&max=1":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"取得起点バージョンに終点起点バージョンより大きい値が設定されています\\\"}\")"
+  - desc: "12. カタログ履歴取得(/history/:code) 異常:カタログの存在しないcodeを指定"
+    ct:
+      "/catalog/history/2000001?min=1":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 404 && current.res.body == fromJSON(\"{\\\"status\\\":404,\\\"message\\\":\\\"対象カタログがありません\\\"}\")"
+  - desc: "13. カタログ履歴取得(/history/:code) 正常:max未指定"
+    ct:
+      "/catalog/history/1000001?min=1":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":1}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":4},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":4}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":5},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":5}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"
+  - desc: "14. カタログ履歴取得(/history/:code) 正常:max指定,maxが取得対象カタログの最新バージョンより小さい"
+    ct:
+      "/catalog/history/1000001?min=2&max=4":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":4},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":4}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"
+  - desc: "15. カタログ履歴取得(/history/:code) 正常:max指定,maxが取得対象カタログの最新バージョンより大きい"
+    ct:
+      "/catalog/history/1000001?min=1&max=100":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":1}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":4},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":4}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":5},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":5}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"
+  - desc: "16. カタログ履歴取得(/history/:code) 正常:min=max指定"
+    ct:
+      "/catalog/history/1000001?min=2&max=2":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"
+  - desc: "17. カタログ履歴取得(/history/:code) 異常:min=max指定(論理削除されたバージョンのみの指定)"
+    ct:
+      "/catalog/history/1000001?min=3&max=3":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 404 && current.res.body == fromJSON(\"{\\\"status\\\":404,\\\"message\\\":\\\"対象カタログがありません\\\"}\")"
+  - desc: "18. カタログ履歴取得(/history/:code) 正常:min=max指定(最小バージョンのみの指定)"
+    ct:
+      "/catalog/history/1000001?min=1&max=1":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":1}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"
+  - desc: "19. カタログ履歴取得(/history/:code) 正常:min=max指定(最大バージョンのみの指定)"
+    ct:
+      "/catalog/history/1000001?min=5&max=5":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":5},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":5}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"
+  - desc: "20. カタログ履歴取得(/history/:code) 正常:minが論理削除されたカタログのバージョン"
+    ct:
+      "/catalog/history/1000001?min=3&max=5":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":4},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":4}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":5},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":5}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"
+  - desc: "21. カタログ履歴取得(/history/:code) 正常:maxが論理削除されたカタログのバージョン"
+    ct:
+      "/catalog/history/1000001?min=1&max=3":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":1}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null},{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000001,\\\"_ver\\\":2}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"
+  - desc: "22. カタログ履歴取得(/history/:code) 正常:最新バージョンが1のカタログの取得"
+    ct:
+      "/catalog/history/1000002?min=1":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"[{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/ext/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1000002,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1000002,\\\"_ver\\\":1}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}]\")"

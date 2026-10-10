@@ -21,7 +21,7 @@
 | certificate | D-013 | 256 | 256 | 0 |
 | binary | D-014 | 127 | 127 | 0 |
 | ctoken | D-015 | 442 | 442 | 0 |
-| book-manage | D-016 | 2,785 | 1,920 | 4 |
+| book-manage | D-016 | 2,785 | 1,920 | 4（確認済み。E2E に入れた） |
 | book-operate | D-017 | 1,677 | 1,677 | 0 |
 
 単位 proxy は [proxy.md](units/proxy.md)（D-008、350 件すべて単体テストへ）、operator は [operator.md](units/operator.md)（D-006、D-007）で、この一覧の対象外です。
@@ -34,7 +34,7 @@
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
-| `src/tests/CreateAPIKey.validator.spec.ts` | 75 | 候補（未確認） | なし |
+| `src/tests/CreateAPIKey.validator.spec.ts` | 75 | E2E（確認済み、GREEN） | なし |
 | `src/tests/CreateActorAPIKey.spec.ts` | 6 | 単体テストへ（D-009） | スタブ: StubAccessControlServer, StubCatalogServer, StubOperatorServer 他 |
 | `src/tests/CreateAppWfUserAPIKey.spec.ts` | 6 | 単体テストへ（D-009） | スタブ: StubAccessControlServer, StubCatalogServer, StubOperatorServer 他 |
 | `src/tests/CreateBlockAPIKey.spec.ts` | 6 | 単体テストへ（D-009） | スタブ: StubAccessControlServer, StubBookManageServer, StubCatalogServer 他 |
@@ -49,11 +49,11 @@
 
 ### pxr-access-control-service（単位：access-control）
 
-試験ファイル 17、試験 121 件。単体テストへ 59 件、E2E の候補（未確認）62 件
+試験ファイル 17、試験 121 件。単体テストへ 59 件（D-009 の一覧に次の行）、E2E に入れた 62 件（GREEN。`test/e2e/access-control/`）
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
-| `src/tests/00-00.Validation.spec.ts` | 8 | 候補（未確認） | なし |
+| `src/tests/00-00.Validation.spec.ts` | 8 | E2E（GREEN。`00-00.Validation.yml`） | なし |
 | `src/tests/01-01.Token.spec.ts` | 40 | 単体テストへ（D-009） | スタブ: StubServer |
 | `src/tests/01-10.Token.Abnormal3.spec.ts` | 1 | 単体テストへ（D-009） | スタブ: StubServer |
 | `src/tests/01-12.Token.AccessNomal1.spec.ts` | 1 | 単体テストへ（D-009） | スタブ: StubServer |
@@ -65,15 +65,15 @@
 | `src/tests/01-19.Token.ApiTokenReceiveCheckOK.spec.ts` | 1 | 単体テストへ（D-009） | スタブ: StubServer |
 | `src/tests/01-28.Token.BinaryUpload.spec.ts` | 3 | 単体テストへ（D-009） | スタブ: StubServer |
 | `src/tests/01-29.Token.OperatorError1.spec.ts` | 7 | 単体テストへ（D-009） | スタブ: StubServer |
-| `src/tests/02-01.AccessControl.spec.ts` | 30 | 候補（未確認） | なし |
-| `src/tests/03-01.Collate.spec.ts` | 12 | 候補（未確認） | なし |
-| `src/tests/03-02.CollateOk.spec.ts` | 10 | 候補（未確認） | なし |
-| `src/tests/03-08.Collate.NoMacthError.spec.ts` | 1 | 候補（未確認） | なし |
-| `src/tests/03-09.Collate.Macth.spec.ts` | 1 | 候補（未確認） | なし |
+| `src/tests/02-01.AccessControl.spec.ts` | 30 | E2E（GREEN。`02-01.AccessControl.yml`。応答の token は実行ごとに変わるため、後のステップは `steps[N]` で受け渡す） | なし |
+| `src/tests/03-01.Collate.spec.ts` | 12 | E2E（GREEN。`03-01.Collate.yml`） | なし |
+| `src/tests/03-02.CollateOk.spec.ts` | 10 | E2E（GREEN。`03-02.CollateOk.yml`） | なし |
+| `src/tests/03-08.Collate.NoMacthError.spec.ts` | 1 | E2E（GREEN。`03-08.Collate.NoMacthError.yml`） | なし |
+| `src/tests/03-09.Collate.Macth.spec.ts` | 1 | E2E（GREEN。`03-09.Collate.Macth.yml`） | なし |
 
 ### pxr-catalog-service（単位：catalog）
 
-試験ファイル 27、試験 1444 件。単体テストへ 636 件、E2E の候補（未確認）808 件
+試験ファイル 27、試験 1444 件。単体テストへ 636 件、E2E（確認済み、GREEN、`test/e2e/catalog/`）7 ファイル 1144 件
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
@@ -86,28 +86,28 @@
 | `src/tests/03-02.CatalogName.dbError.spec.ts` | 3 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/03-03.CatalogName.dbError.spec.ts` | 1 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/03-04.CatalogName.dbError.spec.ts` | 1 | 単体テストへ（D-010） | jest.mock 1 件 |
-| `src/tests/04-01.Catalog.model.spec.ts` | 303 | 候補（未確認） | なし |
-| `src/tests/04-02.Catalog.built_in.spec.ts` | 229 | 候補（未確認） | なし |
-| `src/tests/04-03.Catalog.ext.spec.ts` | 229 | 候補（未確認） | なし |
+| `src/tests/04-01.Catalog.model.spec.ts` | 303 | E2E（確認済み、GREEN） | なし |
+| `src/tests/04-02.Catalog.built_in.spec.ts` | 229 | E2E（確認済み、GREEN） | なし |
+| `src/tests/04-03.Catalog.ext.spec.ts` | 229 | E2E（確認済み、GREEN） | なし |
 | `src/tests/04-04.Catalog.model.error.spec.ts` | 88 | 単体テストへ（D-010） | スタブ: StubOperatorServer |
 | `src/tests/04-05.Catalog.dbError.spec.ts` | 15 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/04-06.Catalog.dbError.spec.ts` | 3 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/04-07.Catalog.dbError.spec.ts` | 15 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/04-08.Catalog.dbError.spec.ts` | 12 | 単体テストへ（D-010） | jest.mock 1 件 |
-| `src/tests/04-09.Catalog.bulk.spec.ts` | 1 | 候補（未確認） | なし |
-| `src/tests/05-01.CatalogInner.spec.ts` | 20 | 候補（未確認） | なし |
+| `src/tests/04-09.Catalog.bulk.spec.ts` | 1 | E2E（確認済み、GREEN。繰り返しで 337 件） | なし |
+| `src/tests/05-01.CatalogInner.spec.ts` | 20 | E2E（確認済み、GREEN） | なし |
 | `src/tests/06-01.CatalogFullText.spec.ts` | 21 | 単体テストへ（D-010） | スタブ: StubCloudSearchServer, StubOperatorServer; jest.mock 1 件 |
 | `src/tests/07-01.UpdateSet.spec.ts` | 65 | 単体テストへ（D-010） | スタブ: StubOperatorServer |
 | `src/tests/07-02.UpdateSet.spec.ts` | 72 | 単体テストへ（D-010） | スタブ: StubOperatorServer |
 | `src/tests/07-03.UpdateSet.dbError.spec.ts` | 8 | 単体テストへ（D-010） | jest.mock 3 件 |
 | `src/tests/07-04.UpdateSet.dbError.spec.ts` | 5 | 単体テストへ（D-010） | jest.mock 1 件 |
-| `src/tests/08-01.CatalogPublic.spec.ts` | 4 | 候補（未確認） | なし |
+| `src/tests/08-01.CatalogPublic.spec.ts` | 4 | E2E（確認済み、GREEN） | なし |
 | `src/tests/09-01.Attribute.spec.ts` | 31 | 単体テストへ（D-010） | スタブ: StubOperatorServer |
-| `src/tests/10-01.CatalogHistoryCode.spec.ts` | 22 | 候補（未確認） | なし |
+| `src/tests/10-01.CatalogHistoryCode.spec.ts` | 22 | E2E（確認済み、GREEN） | なし |
 
 ### pxr-catalog-update-service（単位：catalog）
 
-試験ファイル 47、試験 640 件。単体テストへ 578 件、E2E の候補（未確認）62 件
+試験ファイル 47、試験 640 件。単体テストへ 597 件（D-010）、E2E に入れた 43 件（GREEN。`test/e2e/catalog-update/`）
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
@@ -121,7 +121,7 @@
 | `src/tests/05-02.Join.UpdateOK.spec.ts` | 9 | 単体テストへ（D-010） | スタブ: _StubCatalogServer, _StubNotificationServer, _StubOperatorServer |
 | `src/tests/05-03.Join.DraftNG.spec.ts` | 13 | 単体テストへ（D-010） | スタブ: _StubCatalogServerEr |
 | `src/tests/05-04.Join.AppOK.spec.ts` | 2 | 単体テストへ（D-010） | スタブ: _StubNotificationServer |
-| `src/tests/05-05.Join.ParamNg.spec.ts` | 18 | 候補（未確認） | なし |
+| `src/tests/05-05.Join.ParamNg.spec.ts` | 18 | E2E（GREEN。`05-05.Join.ParamNg.yml`） | なし |
 | `src/tests/06-01.JoinRemove.DraftNG.spec.ts` | 13 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk |
 | `src/tests/06-02.JoinRemove.CatalogActorNG.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk |
 | `src/tests/06-03.JoinRemove.DraftOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk |
@@ -129,18 +129,18 @@
 | `src/tests/06-05.JoinRemove.WfOK.spec.ts` | 3 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNotificationServer |
 | `src/tests/06-06.JoinRemove.OK2.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: StubServer, _StubCatalogServerOk, _StubNotificationServer |
 | `src/tests/06-07.JoinRemove.AppOK.spec.ts` | 5 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNotificationServer |
-| `src/tests/06-08.JoinRemove.ParamNg.spec.ts` | 18 | 候補（未確認） | なし |
+| `src/tests/06-08.JoinRemove.ParamNg.spec.ts` | 18 | E2E（GREEN。`06-08.JoinRemove.ParamNg.yml`） | なし |
 | `src/tests/07-01.Join.ApprovalApOK.spec.ts` | 2 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-02.Join.ApprovalApCatalogError.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-03.Join.ApprovalWfOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-04.Join.ApprovalApNo.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-05.Join.ApprovalApPutNG.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-06.Join.ApprovalApNoticeNG.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
-| `src/tests/07-07.JoinApproval.ParamNg.spec.ts` | 5 | 候補（未確認） | なし |
+| `src/tests/07-07.JoinApproval.ParamNg.spec.ts` | 5 | E2E（GREEN。`07-07.JoinApproval.ParamNg.yml`。承認コードがない試験は、仕様どおり 404 だけを見る） | なし |
 | `src/tests/07-08.Join.ApprovalApOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-09.Join.ApprovalWfOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-10.Join.ApprovalWfOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
-| `src/tests/09-01.GetJoin.spec.ts` | 21 | 候補（未確認） | なし |
+| `src/tests/09-01.GetJoin.spec.ts` | 21 | 一部 E2E（GREEN。試験 19・20 の 2 件。`09-01.GetJoin.yml`）。残り 19 件は単体テストへ（D-010） | 18 件はスタブ（`CatalogServer4Get` 他）。1 件は catalog の停止に依る（「カタログサービスへの接続に失敗」） |
 | `src/tests/11-01.PostActorRemove.spec.ts` | 32 | 単体テストへ（D-010） | スタブ: StubServer, _StubCatalogServer, _StubNotificationServer 他 |
 | `src/tests/12-01.PostActorRemoveApproval.spec.ts` | 23 | 単体テストへ（D-010） | スタブ: _StubCatalogServer, _StubNotificationServer, _StubOperatorServer |
 | `src/tests/13-01.PostTermsOfUse.spec.ts` | 35 | 単体テストへ（D-010） | スタブ: _StubCatalogServer, _StubOperatorServer |
@@ -304,7 +304,7 @@
 
 ### pxr-book-manage-service（単位：book-manage）
 
-試験ファイル 69、試験 2785 件。単体テストへ 1920 件、E2E の候補（未確認）4 件
+試験ファイル 69、試験 2785 件。単体テストへ 1920 件、E2E（確認済み、GREEN、`test/e2e/book-manage/`）4 件
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
@@ -321,8 +321,8 @@
 | `src/tests/11-01.BookClose.spec.ts` | 14 | 単体テストへ（D-016） | スタブ: StubCatalogServer, StubCatalogServerBookClose, StubIdServiceServer 他 |
 | `src/tests/12-01.GetCooperate.spec.ts` | 20 | 単体テストへ（D-016） | スタブ: StubCatalogServer, StubCatalogServerGetCooperate, StubOperatorServer 他 |
 | `src/tests/13-01.LoginCode.spec.ts` | 13 | 単体テストへ（D-016） | スタブ: StubOperatorServer, StubOperatorServerLoginCode |
-| `src/tests/14-01.Identification.spec.ts` | 2 | 候補（未確認） | なし |
-| `src/tests/14-02.Identification.spec.ts` | 2 | 候補（未確認） | なし |
+| `src/tests/14-01.Identification.spec.ts` | 2 | E2E（確認済み、GREEN） | なし |
+| `src/tests/14-02.Identification.spec.ts` | 2 | E2E（確認済み、GREEN） | なし |
 | `src/tests/15-01.CooperateRequest.spec.ts` | 33 | 単体テストへ（D-016） | スタブ: StubOperatorServer, StubOperatorService |
 | `src/tests/16-01.ForceDeletion.spec.ts` | 7 | 単体テストへ（D-016） | スタブ: StubServer; jest.mock 1 件 |
 | `src/tests/16-02.ForceDeletion.FailedUpdateOperator.spec.ts` | 2 | 単体テストへ（D-016） | スタブ: StubServer; jest.mock 1 件 |

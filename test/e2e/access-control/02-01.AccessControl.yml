@@ -1,0 +1,743 @@
+desc: "旧 access-control の試験（02-01.AccessControl.spec.ts）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-access-control-service/blob/5cd2d6a/src/tests/02-01.AccessControl.spec.ts （スタブ・モックなし）。試験は前のデータを前提に続けて流すため、1 本のシナリオに順番どおり並べた"
+runners:
+  ac: __FUNADANSU_E2E_AC_URL__
+  db: __FUNADANSU_E2E_AC_DB__
+steps:
+  - desc: "試験の DB 準備（initialData.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- 対象テーブルのデータをすべて削除
+        DELETE FROM pxr_access_control.caller_role;
+        DELETE FROM pxr_access_control.api_access_permission;
+        DELETE FROM pxr_access_control.api_token;
+        
+        -- 対象テーブルのシーケンスを初期化
+        SELECT SETVAL('pxr_access_control.api_access_permission_id_seq', 1, false);
+        SELECT SETVAL('pxr_access_control.api_token_id_seq', 1, false);
+        SELECT SETVAL('pxr_access_control.caller_role_id_seq', 1, false);
+  - desc: "1. APIトークン取得開始 正常系: アプリケーションが継続的データ共有で個人のデータを取得する場合"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "2. APIトークン取得開始 正常系: アプリケーションが継続的データ共有で個人のデータを取得する場合"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "3. APIトークン取得開始 正常系: アプリケーションが個人のデータを蓄積する場合"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"loginId":"app_operator"}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "4. APIトークン取得開始 正常系: アプリケーションが個人のデータを蓄積する場合"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"loginId":"app_operator"}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "5. APIトークン取得開始 正常系: アプリケーションが継続的データ共有で個人のデータを取得する場合"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "6. APIトークン取得開始 正常系: アプリケーションが継続的データ共有で個人のデータを取得する場合"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "7. APIトークン取得開始 正常系: アプリケーションが個人のデータを蓄積する場合"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"role":[{"_value":1000005,"_ver":1}],"loginId":"app_operator"}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event/%253Fns%253D%252Fabc","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "8. APIトークン取得開始 正常系: アプリケーションが個人のデータを蓄積する場合"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"role":[{"_value":1000005,"_ver":1}],"loginId":"app_operator"}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event/%253Fns%253D%252Fabc","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "9. APIトークン取得開始 正常系: アプリケーションが継続的データ共有で個人のデータを取得する場合の複数件リクエスト"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}},{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":1},{"_value":1000015,"_ver":2}],"loginId":"app_member01"}},"target":{"blockCode":7777777,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "10. APIトークン取得開始 正常系: アプリケーションが継続的データ共有で個人のデータを取得する場合の複数件リクエスト"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}},{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":1},{"_value":1000015,"_ver":2}],"loginId":"app_member01"}},"target":{"blockCode":7777777,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "11. APIトークン取得開始 正常系: アプリケーションが個人のデータを蓄積する場合の複数件リクエスト"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"loginId":"app_operator"}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}},{"caller":{"blockCode":5555555,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"loginId":"app_operator"}},"target":{"blockCode":5555555,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "12. APIトークン取得開始 正常系: アプリケーションが個人のデータを蓄積する場合の複数件リクエスト"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"loginId":"app_operator"}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}},{"caller":{"blockCode":5555555,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"loginId":"app_operator"}},"target":{"blockCode":5555555,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 200"
+  - desc: "13. APIトークン取得開始 異常: JSONではないリクエスト"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            text/plain: ""
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストが空です\\\"}\")"
+  - desc: "14. APIトークン取得開始 異常: JSONではないリクエスト"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            text/plain: ""
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストが空です\\\"}\")"
+  - desc: "15. APIトークン取得開始 異常: リクエストボディが空"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストが空です\\\"}\")"
+  - desc: "16. APIトークン取得開始 異常: リクエストボディが空"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストが空です\\\"}\")"
+  - desc: "17. APIトークン取得開始 異常系: リクエストボディが配列でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: {"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"配列ではありません\\\"}\")"
+  - desc: "18. APIトークン取得開始 異常系: リクエストボディが配列でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: {"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"配列ではありません\\\"}\")"
+  - desc: "19. APIトークン取得開始 異常: リクエストオペレータータイプが規定外(operatorType != 0, 2, 3)"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":4,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"type\\\",\\\"value\\\":4,\\\"message\\\":\\\"この値に設定できる値としては、未定義です\\\"}]}\")"
+  - desc: "20. APIトークン取得開始 異常: リクエストオペレータータイプが規定外(operatorType != 0, 2, 3)"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":4,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"type\\\",\\\"value\\\":4,\\\"message\\\":\\\"この値に設定できる値としては、未定義です\\\"}]}\")"
+  - desc: "21. APIトークン取得開始 異常: caller_blockCodeが数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":"aaaaa","apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"blockCode\\\",\\\"value\\\":\\\"aaaaa\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "22. APIトークン取得開始 異常: caller_blockCodeが数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":"aaaaa","apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"blockCode\\\",\\\"value\\\":\\\"aaaaa\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "23. APIトークン取得開始 異常: target_blockCodeが数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":"bbbbb","apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"blockCode\\\",\\\"value\\\":\\\"bbbbb\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "24. APIトークン取得開始 異常: target_blockCodeが数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":"bbbbb","apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"blockCode\\\",\\\"value\\\":\\\"bbbbb\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "25. APIトークン取得開始 異常: caller apiCodeがない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"UUIDではありません\\\"}]}\")"
+  - desc: "26. APIトークン取得開始 異常: caller apiCodeがない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"UUIDではありません\\\"}]}\")"
+  - desc: "27. APIトークン取得開始 異常: target expirationDateがない)"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":null,\\\"message\\\":\\\"日付型ではありません\\\"}]}\")"
+  - desc: "28. APIトークン取得開始 異常: target expirationDateがない)"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":null,\\\"message\\\":\\\"日付型ではありません\\\"}]}\")"
+  - desc: "29. APIトークン取得開始 異常: 有効期限が無効な形式"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020/11/19","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":\\\"2020/11/19\\\",\\\"message\\\":\\\"日付型ではありません\\\"}]}\")"
+  - desc: "30. APIトークン取得開始 異常: 有効期限が無効な形式"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020/11/19","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":\\\"2020/11/19\\\",\\\"message\\\":\\\"日付型ではありません\\\"}]}\")"
+  - desc: "31. APIトークン取得開始 異常: 有効期限が日付ではない形式"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"aaaaa","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":\\\"aaaaa\\\",\\\"message\\\":\\\"日付型ではありません\\\"}]}\")"
+  - desc: "32. APIトークン取得開始 異常: 有効期限が日付ではない形式"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"aaaaa","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":\\\"aaaaa\\\",\\\"message\\\":\\\"日付型ではありません\\\"}]}\")"
+  - desc: "33. APIトークン取得開始 異常: 有効期限が期限切れ"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020-01-19T10:06:34.000+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"有効期限を現在日時より過去を設定することはできません\\\"}\")"
+  - desc: "34. APIトークン取得開始 異常: 有効期限が期限切れ"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020-01-19T10:06:34.000+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"有効期限を現在日時より過去を設定することはできません\\\"}\")"
+  - desc: "35. APIトークン取得開始 異常: 必須値がcallerとtargetで複数足りない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"UUIDではありません\\\"},{\\\"property\\\":\\\"apiUrl\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiUrl\\\",\\\"value\\\":null,\\\"message\\\":\\\"文字列ではありません\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値に設定できる値としては、未定義です\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"文字列ではありません\\\"},{\\\"property\\\":\\\"apiUrl\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiUrl\\\",\\\"value\\\":null,\\\"message\\\":\\\"文字列ではありません\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値に設定できる値としては、未定義です\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"文字列ではありません\\\"},{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "36. APIトークン取得開始 異常: 必須値がcallerとtargetで複数足りない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"UUIDではありません\\\"},{\\\"property\\\":\\\"apiUrl\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiUrl\\\",\\\"value\\\":null,\\\"message\\\":\\\"文字列ではありません\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値に設定できる値としては、未定義です\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"文字列ではありません\\\"},{\\\"property\\\":\\\"apiUrl\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiUrl\\\",\\\"value\\\":null,\\\"message\\\":\\\"文字列ではありません\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値に設定できる値としては、未定義です\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiMethod\\\",\\\"value\\\":null,\\\"message\\\":\\\"文字列ではありません\\\"},{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "37. APIトークン取得開始 異常: caller apiCodeが存在しない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"UUIDではありません\\\"}]}\")"
+  - desc: "38. APIトークン取得開始 異常: caller apiCodeが存在しない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は空を期待しません\\\"},{\\\"property\\\":\\\"apiCode\\\",\\\"value\\\":null,\\\"message\\\":\\\"UUIDではありません\\\"}]}\")"
+  - desc: "39. APIトークン取得開始 異常: target exprirationDateがない)"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "40. APIトークン取得開始 異常: target exprirationDateがない)"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "41. APIトークン取得開始 異常: operator role _value が数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":"bbbb","_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_value\\\",\\\"value\\\":\\\"bbbb\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "42. APIトークン取得開始 異常: operator role _value が数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":"bbbb","_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_value\\\",\\\"value\\\":\\\"bbbb\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "43. APIトークン取得開始 異常: operator role _value がない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_value\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "44. APIトークン取得開始 異常: operator role _value がない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_value\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "45. APIトークン取得開始 異常: operator role _value がない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":"","_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_value\\\",\\\"value\\\":null,\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "46. APIトークン取得開始 異常: operator role _value がない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":"","_ver":1}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_value\\\",\\\"value\\\":null,\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "47. APIトークン取得開始 異常: operator role _ver が数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":"a"}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_ver\\\",\\\"value\\\":\\\"a\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "48. APIトークン取得開始 異常: operator role _ver が数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":"a"}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_ver\\\",\\\"value\\\":\\\"a\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "49. APIトークン取得開始 異常: operator role _ver がない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_ver\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "50. APIトークン取得開始 異常: operator role _ver がない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_ver\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "51. APIトークン取得開始 異常: operator role _ver がない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":""}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_ver\\\",\\\"value\\\":null,\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "52. APIトークン取得開始 異常: operator role _ver がない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app2","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000007,"_ver":1},"role":[{"_value":1000005,"_ver":""}],"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1000008,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_ver\\\",\\\"value\\\":null,\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "53. APIトークン取得開始 異常: operator app _value が数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":"abcd","_ver":1}}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_value\\\",\\\"value\\\":\\\"abcd\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "54. APIトークン取得開始 異常: operator app _value が数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":"abcd","_ver":1}}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_value\\\",\\\"value\\\":\\\"abcd\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "55. APIトークン取得開始 異常: operator app _ver が数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":"a"}}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_ver\\\",\\\"value\\\":\\\"a\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "56. APIトークン取得開始 異常: operator app _ver が数値でない"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":"a"}}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"_ver\\\",\\\"value\\\":\\\"a\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "57. APIトークン取得開始 異常: expirationDateが規定外"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1}}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"abcd","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":\\\"abcd\\\",\\\"message\\\":\\\"日付型ではありません\\\"}]}\")"
+  - desc: "58. APIトークン取得開始 異常: expirationDateが規定外"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1}}},"target":{"blockCode":4444444,"apiUrl":"https://~~~/book-operate/store/{userId}/event","apiMethod":"POST","expirationDate":"abcd","parameter":{"dataType":[{"_value":1001111,"_ver":1}]}}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"expirationDate\\\",\\\"value\\\":\\\"abcd\\\",\\\"message\\\":\\\"日付型ではありません\\\"}]}\")"
+  - desc: "59. SNS通知バグ対応追加ケース 正常: api_access_permission.parameter にリクエストと同等の内容が保存されているかを確認"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":"{\"document\":[{\"_value\":1000008,\"_ver\":1}],\"event\":[{\"_value\":1000008,\"_ver\":1}],\"thing\":[{\"_value\":1000008,\"_ver\":1}]}"}}]
+    test: "current.res.status == 200"
+  - desc: "60. SNS通知バグ対応追加ケース 正常: api_access_permission.parameter にリクエストと同等の内容が保存されているかを確認"
+    ac:
+      "/access-control/":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":3333333,"apiUrl":"https://~~~/book-operate/share/{userId}","apiMethod":"POST","userId":"xxx_yyy.app","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":2,"app":{"_value":1000099,"_ver":1},"loginId":"app_member01"}},"target":{"blockCode":6666666,"apiUrl":"https://~~~/book-operate/share","apiMethod":"GET","expirationDate":"2026-10-11T01:03:58.376+0900","parameter":"{\"document\":[{\"_value\":1000008,\"_ver\":1}],\"event\":[{\"_value\":1000008,\"_ver\":1}],\"thing\":[{\"_value\":1000008,\"_ver\":1}]}"}}]
+    test: "current.res.status == 200"
+  - desc: "試験の DB 操作（SQL）"
+    db:
+      query: |
+        select * from  pxr_access_control.api_access_permission where token='{{ steps[59].res.body[0].apiToken }}'

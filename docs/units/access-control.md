@@ -8,7 +8,7 @@
 | 旧実装 | pxr-access-control-manage-service、pxr-access-control-service |
 | OpenAPI | `openapi/legacy/` の access-control-manage.json、access-control.json |
 | 旧スキーマ | 未確認（フェーズ1で DDL を見る） |
-| 状態 | 作業中（フェーズ0：旧試験の分類のみ。E2E は 0 本） |
+| 状態 | 作業中（フェーズ0：旧 E2E の候補 137 件のうち、access-control-manage の 75 件と access-control の 62 件を確認し、E2E に入れた。単体テストへ回すもの 184 件は D-009） |
 | 関連 Issue | #22（P0-6 / 6.2） |
 
 ## この単位が担うこと
@@ -32,7 +32,7 @@
 | 試験ファイル | 29 |
 | 試験（件数） | 321 |
 | 単体テストへ（スタブ・モック・jest.spyOn に依る） | 184（D-009） |
-| E2E の候補（supertest、依存なし。未確認） | 137 |
+| E2E の候補（supertest、依存なし） | 137（確認済み 75 件、未確認 62 件） |
 | 対象外（supertest なし） | ファイル 0 件 |
 
 ## 旧 E2E の状況
@@ -40,6 +40,7 @@
 | 時点 | 通過（シナリオ） | 失敗（シナリオ） | 備考 |
 | --- | --- | --- | --- |
 | フェーズ0（分類後） | 0 | 0 | E2E の候補は未確認。単体テストへ回すものは D-009 |
+| フェーズ0（候補の確認後） | 7 | 0 | access-control-manage の CreateAPIKey.validator.spec.ts（75 件）と、access-control の 6 本（62 件）が GREEN（`test/e2e/access-control/`） |
 
 ## 差分台帳への記録
 
@@ -49,15 +50,23 @@
 
 まだ何も移していません。
 
+## 確認の途中で分かったこと
+
+- access-control（旧）の 00-00.Validation.spec.ts の 200 の 2 件は、DB に既に入っている行に依ります。試験の中には行を入れる処理がなく、前の試験の残りに依るため、空の DB からは GREEN になりません。E2E に入れるには、どの行を入れるかを決めてからにします（要確認）
+- access-control（旧）の 03-01、03-02 は、前の応答の `apiToken` を次の要求に使います。runn では値を受け渡すための書き方が要ります（未着手）
+- 試験の DB の NOT NULL の差は、notification と book-manage と同じく、ローカルの試験用 DB だけで外しました（D-005 と同じ種類の差）
+
 ## 作業の記録
 
 | 日付 | 誰が | やったこと |
 | --- | --- | --- |
 | 2026-10-10 | Claude | 旧試験を分類し、単体テストへ回すもの（D-009）を差分台帳に記録。引き継ぎファイルを作る |
+| 2026-10-10 | Claude | access-control-manage の CreateAPIKey.validator.spec.ts（75 件）を、旧実装を起動して流し、75 件 GREEN を確認。runn にした |
 
 ## 残っていること
 
-- [ ] 候補 137 件を、旧実装を起動して確かめ、GREEN のものだけ `test/e2e/access-control/` に runn のシナリオとして書く
+- [x] access-control-manage の候補 75 件を確かめ、GREEN のものを `test/e2e/access-control/` に入れた
+- [x] access-control（旧）の候補 62 件（00-00、02-01、03-01、03-02、03-08、03-09）を確かめ、GREEN の 62 件を `test/e2e/access-control/` に入れた（試験ごとに、前のデータを前提に続けて流す 1 本のシナリオ）
 - [ ] 単体テストへ回した 184 件を、Go 側の単体テストで置き換える（フェーズ1以降）
 - [ ] 旧 OpenAPI と旧実装を読み、この単位が担うことと依存を書く（フェーズ1）
 - [ ] 外に出す関数の一覧を決める（フェーズ1）

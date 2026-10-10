@@ -63,14 +63,14 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | proxy | 未着手 | — | — | 0 / 0（分類のみ。D-008） | [proxy.md](docs/units/proxy.md) |
 | 2 | operator | 未着手 | 未着手 | 未着手 | 6 / 11（シナリオ） | [operator.md](docs/units/operator.md) |
-| 3 | access-control | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-009） | [access-control.md](docs/units/access-control.md) |
-| 4 | catalog | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-010） | [catalog.md](docs/units/catalog.md) |
+| 3 | access-control | 未着手 | 未着手 | 未着手 | 137 / 137（候補 137 件。access-control-manage の 75 件と、access-control の 62 件。単体テストへ回すもの 184 件は D-009） | [access-control.md](docs/units/access-control.md) |
+| 4 | catalog | 未着手 | 未着手 | 未着手 | 1187 / 1187（pxr-catalog-service の候補 7 ファイル 1144 件と、catalog-update の候補のうち 43 件。catalog-update の残り 19 件は単体テストへ。D-010） | [catalog.md](docs/units/catalog.md) |
 | 5 | notification | 未着手 | 未着手 | 未着手 | 31 / 31（候補の確認。単体テストへ回すもの 55 件は D-011） | [notification.md](docs/units/notification.md) |
 | 6 | identity-verify | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-012） | [identity-verify.md](docs/units/identity-verify.md) |
 | 7 | certificate | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-013） | [certificate.md](docs/units/certificate.md) |
 | 8 | binary | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-014） | [binary.md](docs/units/binary.md) |
 | 9 | ctoken | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-015） | [ctoken.md](docs/units/ctoken.md) |
-| 10 | book-manage | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-016） | [book-manage.md](docs/units/book-manage.md) |
+| 10 | book-manage | 未着手 | 未着手 | 未着手 | 4 / 4（候補の確認。単体テストへ回すもの 1920 件は D-016） | [book-manage.md](docs/units/book-manage.md) |
 | 11 | book-operate | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-017） | [book-operate.md](docs/units/book-operate.md) |
 
 状態は「未着手 / 作業中 / 完了」で書きます。

@@ -1,0 +1,25 @@
+desc: "旧 catalog-update の試験（09-01.GetJoin.spec.ts）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-catalog-update-service/blob/085f312209a74f5ddd95a57e15ec95b14857ab71/src/tests/09-01.GetJoin.spec.ts。記録した要求と応答、および試験が DB に流した SQL を、順番どおりに写した（スタブ・モックなし）。旧実装は TZ=Asia/Tokyo で起動する"
+runners:
+  cu: __FUNADANSU_E2E_CU_URL__
+  db: __FUNADANSU_E2E_CU_DB__
+steps:
+  - desc: "前提：試験の DB を空にする（試験の間で状態を持ち越さないため）"
+    db:
+      query: |
+        TRUNCATE pxr_catalog_update.join_service_manage, pxr_catalog_update.actor_approval_manage, pxr_catalog_update.actor_manage, pxr_catalog_update.alliance_approval_manage, pxr_catalog_update.alliance_manage, pxr_catalog_update.audit_report_manage, pxr_catalog_update.data_operation_manage, pxr_catalog_update.join_approval_manage, pxr_catalog_update.join_manage, pxr_catalog_update.platform_terms_of_use_manage, pxr_catalog_update.region_approval_manage, pxr_catalog_update.region_manage, pxr_catalog_update.region_status_approval_manage, pxr_catalog_update.region_status_manage, pxr_catalog_update.region_terms_of_use_manage CASCADE
+  - desc: "19. Region参加申請取得 パラメータ異常：is_request（boolean以外）"
+    cu:
+      "/catalog-update/join?is_request=a":
+        get:
+          headers:
+            "session": "%7B%22sessionId%22%3A%22494a44bb97aa0ef964f6a666b9019b2d20bf05aa811919833f3e0c0ae2b09b38%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22test-user%22%2C%22name%22%3A%22test-user%22%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000109%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000117%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"isRequest\\\",\\\"value\\\":\\\"a\\\",\\\"message\\\":\\\"真偽値ではありません\\\"}]}\")"
+  - desc: "20. Region参加申請取得 パラメータ異常：in_approved（boolean以外）"
+    cu:
+      "/catalog-update/join?in_approved=a":
+        get:
+          headers:
+            "session": "%7B%22sessionId%22%3A%22494a44bb97aa0ef964f6a666b9019b2d20bf05aa811919833f3e0c0ae2b09b38%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22test-user%22%2C%22name%22%3A%22test-user%22%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000109%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000117%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"inApproved\\\",\\\"value\\\":\\\"a\\\",\\\"message\\\":\\\"真偽値ではありません\\\"}]}\")"
