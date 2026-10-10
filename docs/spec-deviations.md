@@ -23,6 +23,7 @@
 | --- | --- | --- | --- | --- |
 | D-001 | proxy、operator | 認証とセッション | 意図した変更 | 方針決定済み |
 | D-002 | book-operate | 大量件数の一括登録 | 要確認 | フェーズ0で計測 |
+| D-003 | operator | 利用者の情報の検索（`pxrId`） | 要確認 | 仕様の確認待ち |
 
 ## 項目
 
@@ -32,7 +33,7 @@
 | --- | --- |
 | 単位 | proxy、operator |
 | 対象 | ログイン、セッション確認のエンドポイント |
-| 仕様 | 旧 operator の OpenAPI（`pxr-operator-service/config/openapi.json`）の `POST /login`、`POST /session`、`POST /logout`、`POST /ind/login`、`POST /ind/session`、`POST /ind/logout`（`openapi/` は未作成） |
+| 仕様 | 旧 operator の OpenAPI（`pxr-operator-service/config/openapi.json`）の `POST /login`、`POST /session`、`POST /logout`、`POST /ind/login`、`POST /ind/session`、`POST /ind/logout`（`openapi/legacy/operator.json`） |
 | 元の実装 | 独自のセッションを、リクエストごとにデータベースで確認する |
 | Funadansu | ログイン時にパスワードを確認して JWT を発行し、リクエストごとには JWT の署名を検査する。エンドポイントの形は変えない |
 | 種別 | 意図した変更 |
@@ -46,12 +47,26 @@
 | --- | --- |
 | 単位 | book-operate |
 | 対象 | 利用者の一括登録 |
-| 仕様 | 旧 book-operate の OpenAPI（`pxr-book-operate-service/config/openapi.json`）の `POST /user/batch`（`openapi/` は未作成） |
+| 仕様 | 旧 book-operate の OpenAPI（`pxr-book-operate-service/config/openapi.json`）の `POST /user/batch`（`openapi/legacy/book-operate.json`） |
 | 元の実装 | 約 200 件の一括登録で、応答時間の上限を超える事例がある（フェーズ0で計測して確かめる） |
 | Funadansu | 仕様どおりの件数で完了することを目標とする |
 | 種別 | 要確認 |
 | 理由 | — |
 | 関連 | なし（Issue は未起票） |
+
+### D-003 利用者の情報の検索（`pxrId`）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | operator |
+| 対象 | `/user/info`、`/ind/user/info` の `pxrId` のパラメータ |
+| 仕様 | 旧 operator の OpenAPI（`openapi/legacy/operator.json`）の `pxrId` は `number`（`GET`、`DELETE` の query、`/ind/user/info` の `GET`、`PUT` の query） |
+| 元の実装 | 未確認（旧実装の検索の型はまだ見ていない）。他の旧仕様では `pxrId` は `string`、または文字列の配列（`openapi/legacy/identity-verificate.json` など） |
+| Funadansu | 未決。仕様と PXR-ID（文字列）のどちらに合わせるかを決める |
+| 種別 | 要確認 |
+| 理由 | 仕様は `number` だが、PXR-ID は業務上の識別子で、旧スキーマでは `varchar(255)`（[規約](conventions.md)）。数値の検索にすると、文字列の PXR-ID と合わない |
+| 影響 | 合わせ方によって、`pxrId` を送るクライアントの振る舞いが変わる |
+| 関連 | 単位 operator の移行の Issue で決める |
 
 <!--
 ### D-000 <題>

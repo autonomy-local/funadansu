@@ -50,7 +50,8 @@
 | 4.5 | bootstrap：疎通（ローカル、リモート） | 未着手 |
 | 5.1〜5.3 | IaC（Pulumi、sops、dev のスタック） | 未着手 |
 | 5.4 | 最小のデプロイの手順（ローカルの CI → `pulumi up`・`nixos-rebuild`）と運用の手引きの初版（`docs/operations/`） | 未着手 |
-| 6.1〜6.4 | 旧基盤の E2E（OpenAPI の収集、URL の切り替え、Funadansu に向けて全部 RED、旧実装のベースライン） | 未着手 |
+| 6.1 | 旧 OpenAPI を `openapi/legacy/` に集める（取得元のコミットを [openapi/README.md](openapi/README.md) に記録） | ✅ 完了 |
+| 6.2〜6.4 | 旧基盤の E2E（URL の切り替え、Funadansu に向けて全部 RED、旧実装のベースライン） | 未着手 |
 | 7.1 | CI | 未着手 |
 | 7.2 | 脆弱性と秘密情報の検査（govulncheck、CodeQL・gosec、秘密情報の検出、Actions の SHA 固定と最小権限、Renovate） | 未着手 |
 | 7.3 | （フェーズ1までに）SBOM、署名、OpenSSF Scorecard | 未着手 |
