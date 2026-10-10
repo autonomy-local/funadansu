@@ -1,0 +1,67 @@
+desc: proxy 経由の /bootstrap/operators/{id}。認証のあり・なし、見つからない場合、形が不正な場合
+# 前提：run.sh が Go のサービス（8080）と proxy（8787）を起動し、FUNADANSU_TEST_TOKEN に署名済みのトークンを入れている。
+# テストデータは、このシナリオの中で入れて、最後に消す。
+runners:
+  proxy: http://127.0.0.1:8787
+  db: postgres://postgres@localhost:5432/funadansu?sslmode=disable # run.sh が --runner で上書きする
+steps:
+  - desc: 前回の残りを消してから、テスト用のオペレーターを入れる（ID は固定の値。実際の ID の採番は使わない）
+    db:
+      query: DELETE FROM pxr_operator.operator WHERE id = 900000001 OR login_id = 'runn-sample'
+  - desc: テスト用のオペレーターを1件入れる
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator (
+          id, type, login_id, hpassword, pxr_id, user_information, name, mobile_phone, mail,
+          auth, attributes, lock_flg, user_id, region_catalog_code, app_catalog_code,
+          wf_catalog_code, client_id, created_by, updated_by, unique_check_login_id
+        ) VALUES (
+          900000001, 0, 'runn-sample', 'test', 'runn-sample-pxr', '{}', 'test', '', '', '{}', '{}', false,
+          'runn-sample-user', 0, 0, 0, 'test', 'test', 'test', 'runn-sample'
+        )
+  - desc: Authorization が無いと 401 で、中継しない
+    proxy:
+      /bootstrap/operators/900000001:
+        get:
+          body: null
+    test: |
+      current.res.status == 401 &&
+      current.res.body.status == 401 &&
+      current.res.body.message == '認証に失敗しました'
+  - desc: 署名が不正な JWT は 401
+    proxy:
+      /bootstrap/operators/900000001:
+        get:
+          headers:
+            Authorization: 'Bearer aaa.bbb.ccc'
+          body: null
+    test: current.res.status == 401
+  - desc: 署名が正しい JWT では、Go の結果（ID と pxrId）が返る
+    proxy:
+      /bootstrap/operators/900000001:
+        get:
+          headers:
+            Authorization: 'Bearer {{ env.FUNADANSU_TEST_TOKEN }}'
+          body: null
+    test: |
+      current.res.status == 200 &&
+      current.res.body.pxrId == 'runn-sample-pxr'
+  - desc: 存在しない ID は 404
+    proxy:
+      /bootstrap/operators/999999999:
+        get:
+          headers:
+            Authorization: 'Bearer {{ env.FUNADANSU_TEST_TOKEN }}'
+          body: null
+    test: current.res.status == 404
+  - desc: 整数でない ID は 400
+    proxy:
+      /bootstrap/operators/abc:
+        get:
+          headers:
+            Authorization: 'Bearer {{ env.FUNADANSU_TEST_TOKEN }}'
+          body: null
+    test: current.res.status == 400
+  - desc: テスト用のオペレーターを消す（後始末）
+    db:
+      query: DELETE FROM pxr_operator.operator WHERE id = 900000001
