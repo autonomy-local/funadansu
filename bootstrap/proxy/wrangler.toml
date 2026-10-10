@@ -1,0 +1,10 @@
+# Cloudflare Workers の設定。入口は src/entry/workers.ts。
+# 秘密情報（FUNADANSU_JWT_KEY）は書かない。ローカルでは .dev.vars（Git に入れない）、本番では sops で配る。
+name = "funadansu-proxy"
+main = "src/entry/workers.ts"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Go のサービスの接続先（オリジンだけ。パスは付けない）。ローカルの既定は bootstrap の既定の待ち受け先。
+FUNADANSU_UPSTREAM_URL = "http://127.0.0.1:8080"
+FUNADANSU_JWT_KID = "dev-dummy-1"

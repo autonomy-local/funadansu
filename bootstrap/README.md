@@ -10,6 +10,7 @@ Funadansu の規約（[docs/conventions.md](../docs/conventions.md)）を、動�
 | `internal/platform/` | 共通の基盤。設定、ログ、エラーの形、HTTP のミドルウェアとタイムアウト、ヘルスチェック、DB の接続 |
 | `internal/operator/` | 見本の単位。`handler.go`（入口）、`service.go`（業務）、`store/`（sqlc の生成物。手で直さない） |
 | `sqlc.yaml` | sqlc の設定。SQL の正本は `internal/operator/store/query.sql`、型の元は `../db/pxr_operator` |
+| `proxy/` | Hono の入口の見本（TypeScript）。同じ `src/app.ts` を Bun と Cloudflare Workers の両方で動かす。JWT の検査と Go への中継。詳しくは [proxy/README.md](proxy/README.md) |
 
 ## 動かす
 
