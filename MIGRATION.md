@@ -89,7 +89,7 @@
 | 日付 | 対象 | 通過 | 失敗 | 備考 |
 | --- | --- | --- | --- | --- |
 | | 旧実装（ベースライン） | | | フェーズ0の 6.4 |
-| | Funadansu | 0 | | フェーズ0の 6.3（全部 RED） |
+| 2026-10-10 | Funadansu | 0 | 32 | フェーズ0の 6.3。runn のシナリオ 32 本（operator 11、access-control 7、catalog 7、catalog-update 4、notification 1、book-manage 2）をすべて RED。接続先は proxy（127.0.0.1:8787、その背後に Go を 8080）、DB は PostgreSQL 16 の `funadansu`。内訳は各単位の「旧 E2E の状況」 |
 
 ## リリース
 

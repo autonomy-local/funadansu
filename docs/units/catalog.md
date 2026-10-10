@@ -41,6 +41,7 @@
 | --- | --- | --- | --- |
 | フェーズ0（分類後） | 0 | 0 | E2E の候補は未確認。単体テストへ回すものは D-010 |
 | フェーズ0（候補の確認後） | 1187 | 0 | pxr-catalog-service の 7 ファイル（1144 件）と、pxr-catalog-update-service の候補のうち 43 件（`test/e2e/catalog-update/` の 4 本）。すべて GREEN（旧実装に対して） |
+| フェーズ0（Funadansu に向けて流す） | 0 | 11 | 全部 RED（6.3）。catalog の 7 本と catalog-update の 4 本。DB の準備（`catalog.attributes` の NOT NULL。D-005）、または応答の不一致で止まる |
 
 ## 差分台帳への記録
 
