@@ -38,6 +38,20 @@ curl http://127.0.0.1:8080/bootstrap/operators/1
 
 `/bootstrap/operators/{id}` は見本のための経路で、旧 API の形ではありません。`pxr_operator.operator` の `id` と `pxr_id` だけを返し、パスワードや個人情報の列は読みません。見つからなければ 404、整数でなければ 400 を返します。
 
+### API のシナリオ（runn）
+
+`test/api/` に、runn（YAML）のシナリオを置きます（[docs/conventions.md](../docs/conventions.md) の 5 節）。bootstrap の見本は `test/api/bootstrap/` です。
+
+```sh
+db-start && db-init      # 先に PostgreSQL と旧スキーマを用意する
+test/api/run.sh         # Go のサービス（8080）と proxy（8787）を起動し、シナリオを順に流し、止める
+```
+
+- `run.sh` は実行のたびに JWT の鍵を乱数で作ります（鍵は残りません）。proxy は `bootstrap/proxy` の `npm ci` で依存を入れます。
+- DB の接続先は `FUNADANSU_DATABASE_URL` で変えられます（既定は `db-start` の localhost）。
+- シナリオは、テストデータを、固定の ID（`900000001`）で入れて、最後に消します。
+- runn は `flake.nix` の開発シェルで入れ、版は `flake.lock` の nixpkgs で固定します。
+
 ## 設定（環境変数）
 
 | 変数 | 既定 | 意味 |

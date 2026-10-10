@@ -1,0 +1,23 @@
+desc: 生存と準備の確認。Go のサービスに直接つなぎ、proxy では公開しないことも確かめる
+runners:
+  go: http://127.0.0.1:8080
+  proxy: http://127.0.0.1:8787
+steps:
+  - desc: /healthz は、DB に触れずに 200 を返す
+    go:
+      /healthz:
+        get:
+          body: null
+    test: current.res.status == 200
+  - desc: /readyz は、DB の ping が通れば 200 を返す
+    go:
+      /readyz:
+        get:
+          body: null
+    test: current.res.status == 200
+  - desc: /healthz は proxy では公開しない（404）
+    proxy:
+      /healthz:
+        get:
+          body: null
+    test: current.res.status == 404

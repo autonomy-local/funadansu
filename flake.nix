@@ -131,6 +131,9 @@
             postgresql
             sops
             age
+            # API のシナリオ（test/api/）。版は flake.lock の nixpkgs で固定する。
+            runn
+            curl
             db-start
             db-stop
             db-init
