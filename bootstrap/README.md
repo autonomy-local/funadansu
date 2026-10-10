@@ -52,6 +52,21 @@ test/api/run.sh         # Go のサービス（8080）と proxy（8787）を起�
 - シナリオは、テストデータを、固定の ID（`900000001`）で入れて、最後に消します。
 - runn は `flake.nix` の開発シェルで入れ、版は `flake.lock` の nixpkgs で固定します。
 
+## コンテナイメージ（Nix）
+
+`nix build` で、Go のバイナリと、コンテナのイメージ（tar.gz）を作ります。レジストリへの push は、フェーズ0の 5.3 で扱います。
+
+```sh
+nix build .#bootstrap-image        # result に tar.gz ができる（root ではなく 65532 で動く）
+docker load < result
+docker run --rm -p 127.0.0.1:8080:8080 \
+  -e FUNADANSU_DATABASE_URL='postgres://...' funadansu-bootstrap:<タグ>
+curl http://127.0.0.1:8080/healthz    # 200（DB に触れない）
+```
+
+- イメージの待ち受けは `0.0.0.0:8080`（`FUNADANSU_ADDR` で既定を置いています）
+- proxy（Bun）のイメージは、リポジトリのルートで `nix build .#proxy-image` と作ります（[proxy/README.md](proxy/README.md) を参照）
+
 ## 設定（環境変数）
 
 | 変数 | 既定 | 意味 |

@@ -85,9 +85,68 @@
             echo "旧スキーマ：$count 個（データベース $PGDATABASE）"
           '';
         };
+
+        # Go のサービス（bootstrap/）。標準ライブラリと pgx だけで、静的なバイナリを作る。
+        bootstrap = pkgs.buildGoModule {
+          pname = "funadansu-bootstrap";
+          version = "0.1.0";
+          src = ./bootstrap;
+          vendorHash = "sha256-8H2nyRtOHNVngFc77SGccsEWI29adbKWTzL9XfPTX5w=";
+          subPackages = [ "cmd/funadansu" ];
+          env.CGO_ENABLED = "0";
+          ldflags = [ "-s" "-w" ];
+        };
+
+        # コンテナ（Go）。root で動かさず、待ち受けは 0.0.0.0:8080。
+        # 証明書は cacert（PostgreSQL へ TLS で接続するとき、証明書を検証するため）。
+        bootstrap-image = pkgs.dockerTools.buildLayeredImage {
+          name = "funadansu-bootstrap";
+          contents = [ pkgs.cacert ];
+          config = {
+            Entrypoint = [ "${bootstrap}/bin/funadansu" ];
+            Env = [
+              "FUNADANSU_ADDR=0.0.0.0:8080"
+              "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+            ];
+            ExposedPorts = { "8080/tcp" = { }; };
+            User = "65532:65532";
+          };
+        };
+
+        # proxy（Hono）の依存を入れた作業ディレクトリ。実行時の依存（hono）だけを入れる。
+        proxy-app = pkgs.buildNpmPackage {
+          pname = "funadansu-proxy";
+          version = "0.1.0";
+          src = ./bootstrap/proxy;
+          npmDepsHash = "sha256-Qj1TSyy3U2ViDbwgkYupQclg8MaBeX9ykGCyrGVUPSY=";
+          npmInstallFlags = [ "--omit=dev" ];
+          dontNpmBuild = true;
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out/app
+            cp -r src package.json node_modules $out/app/
+            runHook postInstall
+          '';
+        };
+
+        # コンテナ（Bun）。Bun が TypeScript をそのまま動かす（src/entry/bun.ts）。
+        proxy-image = pkgs.dockerTools.buildLayeredImage {
+          name = "funadansu-proxy";
+          contents = [ proxy-app ];
+          config = {
+            Entrypoint = [ "${pkgs.bun}/bin/bun" "src/entry/bun.ts" ];
+            WorkingDir = "/app";
+            Env = [ "FUNADANSU_PROXY_ADDR=0.0.0.0:8787" ];
+            ExposedPorts = { "8787/tcp" = { }; };
+            User = "65532:65532";
+          };
+        };
       in
       {
-        packages = { inherit db-start db-stop db-init; };
+        packages = {
+          inherit db-start db-stop db-init;
+          inherit bootstrap bootstrap-image proxy-app proxy-image;
+        };
 
         # db-start で起動し、接続でき、db-stop で止まることを確かめる。
         checks.db = pkgs.runCommand "funadansu-db-check"

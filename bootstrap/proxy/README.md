@@ -49,6 +49,21 @@ bun run dev:bun                   # 127.0.0.1:8787 で待ち受ける
 npm run dev:workers               # 127.0.0.1:8788 で待ち受ける（.dev.vars が必要）
 ```
 
+### コンテナイメージ（Bun）
+
+リポジトリのルートで、Nix でイメージを作ります（実行時の依存は `hono` だけです）。
+
+```sh
+nix build .#proxy-image           # result に tar.gz ができる（65532 で動く。待ち受けは 0.0.0.0:8787）
+docker load < result
+docker run --rm -p 127.0.0.1:8787:8787 \
+  -e FUNADANSU_JWT_KEY=... -e FUNADANSU_JWT_KID=... -e FUNADANSU_UPSTREAM_URL=http://... \
+  funadansu-proxy:<タグ>
+curl -i http://127.0.0.1:8787/bootstrap/operators/1   # 401（認証が要る）
+```
+
+proxy は `/healthz` を公開しないため、起動の確認は認証の応答で見ます。
+
 ## テストの方針
 
 - `test/jwt.test.ts`：署名、`kid`、`alg`、期限の検査（表駆動）
