@@ -65,7 +65,7 @@
 | 2 | operator | 未着手 | 未着手 | 未着手 | 6 / 11（シナリオ） | [operator.md](docs/units/operator.md) |
 | 3 | access-control | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-009） | [access-control.md](docs/units/access-control.md) |
 | 4 | catalog | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-010） | [catalog.md](docs/units/catalog.md) |
-| 5 | notification | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-011） | [notification.md](docs/units/notification.md) |
+| 5 | notification | 未着手 | 未着手 | 未着手 | 31 / 31（候補の確認。単体テストへ回すもの 55 件は D-011） | [notification.md](docs/units/notification.md) |
 | 6 | identity-verify | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-012） | [identity-verify.md](docs/units/identity-verify.md) |
 | 7 | certificate | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-013） | [certificate.md](docs/units/certificate.md) |
 | 8 | binary | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-014） | [binary.md](docs/units/binary.md) |
