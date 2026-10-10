@@ -107,7 +107,7 @@
 
 ### pxr-catalog-update-service（単位：catalog）
 
-試験ファイル 47、試験 640 件。単体テストへ 578 件、E2E の候補（未確認）62 件
+試験ファイル 47、試験 640 件。単体テストへ 597 件（D-010）、E2E に入れた 43 件（GREEN。`test/e2e/catalog-update/`）
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
@@ -121,7 +121,7 @@
 | `src/tests/05-02.Join.UpdateOK.spec.ts` | 9 | 単体テストへ（D-010） | スタブ: _StubCatalogServer, _StubNotificationServer, _StubOperatorServer |
 | `src/tests/05-03.Join.DraftNG.spec.ts` | 13 | 単体テストへ（D-010） | スタブ: _StubCatalogServerEr |
 | `src/tests/05-04.Join.AppOK.spec.ts` | 2 | 単体テストへ（D-010） | スタブ: _StubNotificationServer |
-| `src/tests/05-05.Join.ParamNg.spec.ts` | 18 | 候補（未確認） | なし |
+| `src/tests/05-05.Join.ParamNg.spec.ts` | 18 | E2E（GREEN。`05-05.Join.ParamNg.yml`） | なし |
 | `src/tests/06-01.JoinRemove.DraftNG.spec.ts` | 13 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk |
 | `src/tests/06-02.JoinRemove.CatalogActorNG.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk |
 | `src/tests/06-03.JoinRemove.DraftOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk |
@@ -129,18 +129,18 @@
 | `src/tests/06-05.JoinRemove.WfOK.spec.ts` | 3 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNotificationServer |
 | `src/tests/06-06.JoinRemove.OK2.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: StubServer, _StubCatalogServerOk, _StubNotificationServer |
 | `src/tests/06-07.JoinRemove.AppOK.spec.ts` | 5 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNotificationServer |
-| `src/tests/06-08.JoinRemove.ParamNg.spec.ts` | 18 | 候補（未確認） | なし |
+| `src/tests/06-08.JoinRemove.ParamNg.spec.ts` | 18 | E2E（GREEN。`06-08.JoinRemove.ParamNg.yml`） | なし |
 | `src/tests/07-01.Join.ApprovalApOK.spec.ts` | 2 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-02.Join.ApprovalApCatalogError.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-03.Join.ApprovalWfOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-04.Join.ApprovalApNo.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-05.Join.ApprovalApPutNG.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-06.Join.ApprovalApNoticeNG.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
-| `src/tests/07-07.JoinApproval.ParamNg.spec.ts` | 5 | 候補（未確認） | なし |
+| `src/tests/07-07.JoinApproval.ParamNg.spec.ts` | 5 | E2E（GREEN。`07-07.JoinApproval.ParamNg.yml`。承認コードがない試験は、仕様どおり 404 だけを見る） | なし |
 | `src/tests/07-08.Join.ApprovalApOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-09.Join.ApprovalWfOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
 | `src/tests/07-10.Join.ApprovalWfOK.spec.ts` | 1 | 単体テストへ（D-010） | スタブ: _StubCatalogServerOk, _StubNoticeServer |
-| `src/tests/09-01.GetJoin.spec.ts` | 21 | 候補（未確認） | なし |
+| `src/tests/09-01.GetJoin.spec.ts` | 21 | 一部 E2E（GREEN。試験 19・20 の 2 件。`09-01.GetJoin.yml`）。残り 19 件は単体テストへ（D-010） | 18 件はスタブ（`CatalogServer4Get` 他）。1 件は catalog の停止に依る（「カタログサービスへの接続に失敗」） |
 | `src/tests/11-01.PostActorRemove.spec.ts` | 32 | 単体テストへ（D-010） | スタブ: StubServer, _StubCatalogServer, _StubNotificationServer 他 |
 | `src/tests/12-01.PostActorRemoveApproval.spec.ts` | 23 | 単体テストへ（D-010） | スタブ: _StubCatalogServer, _StubNotificationServer, _StubOperatorServer |
 | `src/tests/13-01.PostTermsOfUse.spec.ts` | 35 | 単体テストへ（D-010） | スタブ: _StubCatalogServer, _StubOperatorServer |

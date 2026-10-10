@@ -1,0 +1,104 @@
+desc: "旧 catalog-update の試験（07-07.JoinApproval.ParamNg.spec.ts）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-catalog-update-service/blob/085f312209a74f5ddd95a57e15ec95b14857ab71/src/tests/07-07.JoinApproval.ParamNg.spec.ts。記録した要求と応答、および試験が DB に流した SQL を、順番どおりに写した（スタブ・モックなし）。旧実装は TZ=Asia/Tokyo で起動する"
+runners:
+  cu: __FUNADANSU_E2E_CU_URL__
+  db: __FUNADANSU_E2E_CU_DB__
+steps:
+  - desc: "前提：試験の DB を空にする（試験の間で状態を持ち越さないため）"
+    db:
+      query: |
+        TRUNCATE pxr_catalog_update.join_service_manage, pxr_catalog_update.actor_approval_manage, pxr_catalog_update.actor_manage, pxr_catalog_update.alliance_approval_manage, pxr_catalog_update.alliance_manage, pxr_catalog_update.audit_report_manage, pxr_catalog_update.data_operation_manage, pxr_catalog_update.join_approval_manage, pxr_catalog_update.join_manage, pxr_catalog_update.platform_terms_of_use_manage, pxr_catalog_update.region_approval_manage, pxr_catalog_update.region_manage, pxr_catalog_update.region_status_approval_manage, pxr_catalog_update.region_status_manage, pxr_catalog_update.region_terms_of_use_manage CASCADE
+  - desc: "試験の DB 準備（initialData.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- 対象テーブルのデータをすべて削除
+        DELETE FROM pxr_catalog_update.actor_approval_manage;
+        DELETE FROM pxr_catalog_update.actor_manage;
+        DELETE FROM pxr_catalog_update.alliance_approval_manage;
+        DELETE FROM pxr_catalog_update.alliance_manage;
+        DELETE FROM pxr_catalog_update.audit_report_manage;
+        DELETE FROM pxr_catalog_update.data_operation_manage;
+        DELETE FROM pxr_catalog_update.join_approval_manage;
+        DELETE FROM pxr_catalog_update.join_service_manage;
+        DELETE FROM pxr_catalog_update.join_manage;
+        DELETE FROM pxr_catalog_update.platform_terms_of_use_manage;
+        DELETE FROM pxr_catalog_update.region_approval_manage;
+        DELETE FROM pxr_catalog_update.region_status_approval_manage;
+        DELETE FROM pxr_catalog_update.region_status_manage;
+        DELETE FROM pxr_catalog_update.region_manage;
+        DELETE FROM pxr_catalog_update.region_terms_of_use_manage;
+        
+        -- 対象テーブルのシーケンスを初期化
+        SELECT SETVAL('pxr_catalog_update.actor_approval_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.actor_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.alliance_approval_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.alliance_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.audit_report_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.data_operation_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.join_approval_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.join_service_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.join_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.platform_terms_of_use_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.region_approval_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.region_status_approval_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.region_status_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.region_manage_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog_update.region_terms_of_use_manage_id_seq', 1, false);
+  - desc: "1. Region参加承認結果登録/catalog-update/join/approval データがない"
+    cu:
+      "/catalog-update/join/approval/abcd1234":
+        post:
+          headers:
+            "content-type": "application/json"
+            "cookie": "operator_type3_session=cf930faf40d879b87a550d59f26fa4d5c788bb45fa9c94cee6c597608cb46acc"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"status\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "2. Region参加承認結果登録/catalog-update/join/approval 承認コードがない"
+    cu:
+      "/catalog-update/join/approval":
+        post:
+          headers:
+            "content-type": "application/json"
+            "cookie": "operator_type3_session=cf930faf40d879b87a550d59f26fa4d5c788bb45fa9c94cee6c597608cb46acc"
+            "connection": "close"
+          body:
+            application/json: {"status":1,"comment":"null"}
+    test: "current.res.status == 404"
+  - desc: "3. Region参加承認結果登録/catalog-update/join/approval statusがない"
+    cu:
+      "/catalog-update/join/approval/abcd1234":
+        post:
+          headers:
+            "content-type": "application/json"
+            "cookie": "operator_type3_session=cf930faf40d879b87a550d59f26fa4d5c788bb45fa9c94cee6c597608cb46acc"
+            "connection": "close"
+          body:
+            application/json: {"comment":"null"}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"status\\\",\\\"value\\\":null,\\\"message\\\":\\\"この値は必須値です\\\"}]}\")"
+  - desc: "4. Region参加承認結果登録/catalog-update/join/approval statusが数値でない"
+    cu:
+      "/catalog-update/join/approval/abcd1234":
+        post:
+          headers:
+            "content-type": "application/json"
+            "cookie": "operator_type3_session=cf930faf40d879b87a550d59f26fa4d5c788bb45fa9c94cee6c597608cb46acc"
+            "connection": "close"
+          body:
+            application/json: {"status":"a","comment":"null"}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"reasons\\\":[{\\\"property\\\":\\\"status\\\",\\\"value\\\":\\\"a\\\",\\\"message\\\":\\\"数値ではありません\\\"}]}\")"
+  - desc: "5. Region参加承認結果登録/catalog-update/join/approval statusが規定値でない"
+    cu:
+      "/catalog-update/join/approval/abcd1234":
+        post:
+          headers:
+            "content-type": "application/json"
+            "cookie": "operator_type3_session=cf930faf40d879b87a550d59f26fa4d5c788bb45fa9c94cee6c597608cb46acc"
+            "connection": "close"
+          body:
+            application/json: {"status":3,"comment":"null"}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストパラメータが不正です\\\"}\")"
