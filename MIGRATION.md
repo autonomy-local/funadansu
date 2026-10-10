@@ -57,7 +57,8 @@
 | 7.1 | CI | 未着手 |
 | 7.2 | 脆弱性と秘密情報の検査（govulncheck、CodeQL・gosec、秘密情報の検出、Actions の SHA 固定と最小権限、Renovate） | 未着手 |
 | 7.3 | （フェーズ1までに）SBOM、署名、OpenSSF Scorecard | 未着手 |
-| 8.1〜8.3 | 測定の基準（規模、費用、所要時間） | 未着手 |
+| 8.1 | 旧実装のファイル数・行数・依存パッケージ数（[docs/legacy-measurement.md](docs/legacy-measurement.md)） | ✅ 完了 |
+| 8.2〜8.3 | 測定の基準（費用、所要時間） | 未着手 |
 
 ## 単位の状況
 
