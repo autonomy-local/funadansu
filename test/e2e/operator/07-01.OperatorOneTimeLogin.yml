@@ -1,0 +1,234 @@
+desc: 旧 operator の ワンタイムログイン照合。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/07-01.OperatorOneTimeLogin.spec.ts。前提：catalog のスタブ（ポート 3001、pxr-setting.json）を別に立てる
+runners:
+  op: http://127.0.0.1:3000
+  db: {{ env.FUNADANSU_E2E_OPERATOR_DB }}
+steps:
+  - desc: 前提の初期化（initialData.sql と同じ内容）
+    db:
+      query: |
+        DELETE FROM pxr_operator.sms_verification_code;
+        DELETE FROM pxr_operator.session;
+        DELETE FROM pxr_operator.one_time_login_code;
+        DELETE FROM pxr_operator.role_setting;
+        DELETE FROM pxr_operator.operator;
+        DELETE FROM pxr_operator.login_history;
+        DELETE FROM pxr_operator.password_history;
+        DELETE FROM pxr_operator.user_information;
+        DELETE FROM pxr_operator.manage_block_info;
+  - desc: 正常（個人）：個人のオペレーターとワンタイムログインコードを入れて、個人の照合
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator (id, type, login_id, hpassword, mobile_phone, attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id)
+        VALUES (1, 0, 'ind_one_time', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '09011112222', '{"smsAuth": true}', false, 'test_user', NOW(), 'test_user', NOW(), 'ind_one_time,0');
+        INSERT INTO pxr_operator.one_time_login_code (code, operator_id, expire_at, created_by, created_at, updated_by, updated_at)
+        VALUES ('999999', 1, '2025-01-27 23:59:59.000', 'test_user', NOW(), 'test_user', NOW());
+  - desc: 正常（個人）：ind の onetime に、type 0 / ind_one_time / 999999
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 0
+              loginId: ind_one_time
+              loginCode: '999999'
+    test: |
+      current.res.status == 200 &&
+      current.res.body.operatorId == 1 &&
+      current.res.body.loginId == 'ind_one_time' &&
+      current.res.body.passwordChangedFlg == false
+  - desc: 正常（個人以外）：ind の onetime に type 3 は 400
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 3
+              loginId: ind_one_time
+              loginCode: '999999'
+    test: |
+      current.res.status == 400 &&
+      current.res.body.message == 'この操作をするための権限がありません'
+  - desc: 正常（運営メンバー）：運営のオペレーターとコードを入れて、照合
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator (id, type, login_id, hpassword, mobile_phone, attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id)
+        VALUES (2, 3, 'one_time', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '09011112222', '{"smsAuth": true}', false, 'test_user', NOW(), 'test_user', NOW(), 'one_time3');
+        INSERT INTO pxr_operator.one_time_login_code (code, operator_id, expire_at, created_by, created_at, updated_by, updated_at)
+        VALUES ('888888', 2, '2025-01-27 23:59:59.000', 'test_user', NOW(), 'test_user', NOW());
+  - desc: 正常（運営メンバー）：onetime に type 3 / one_time / 888888
+    op:
+      /operator/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 3
+              loginId: one_time
+              loginCode: '888888'
+    test: |
+      current.res.status == 200 &&
+      current.res.body.operatorId == 2 &&
+      current.res.body.loginId == 'one_time' &&
+      current.res.body.passwordChangedFlg == false
+  - desc: 正常（運営メンバー以外）：onetime に type 0 は 400
+    op:
+      /operator/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 0
+              loginId: ind_one_time
+              loginCode: '999999'
+    test: |
+      current.res.status == 400 &&
+      current.res.body.message == '対象のオペレーターは運営メンバーではありません'
+  - desc: 以上（リクエストが配列）：onetime に配列は 400
+    op:
+      /operator/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              - type: 0
+                loginId: ind_one_time
+                loginCode: '999999'
+    test: |
+      current.res.status == 400 &&
+      current.res.body.message == 'リクエストが配列です'
+  - desc: パラメーター不足（type）：ind に type なし
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              loginId: ind02
+              loginCode: '123456'
+    test: |
+      current.res.status == 400 &&
+      len(current.res.body.reasons) == 1 &&
+      current.res.body.reasons[0].property == 'type' &&
+      current.res.body.reasons[0].message == 'この値は必須値です'
+  - desc: パラメーター不足（loginId）：ind に loginId なし
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 0
+              loginCode: '123456'
+    test: |
+      current.res.status == 400 &&
+      len(current.res.body.reasons) == 2 &&
+      current.res.body.reasons[0].property == 'loginId' &&
+      current.res.body.reasons[0].message == 'この値は空を期待しません' &&
+      current.res.body.reasons[1].message == '文字列ではありません'
+  - desc: パラメーター不足（loginCode）：ind に loginCode なし
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 0
+              loginId: ind02
+    test: |
+      current.res.status == 400 &&
+      len(current.res.body.reasons) == 3 &&
+      current.res.body.reasons[0].property == 'loginCode' &&
+      current.res.body.reasons[0].message == '設定できる最短・最長の値の長さが異なっています'
+  - desc: パラメーター異常（未登録の loginCode）は 400
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 0
+              loginId: ind02
+              loginCode: '000000'
+    test: |
+      current.res.status == 400 &&
+      current.res.body.message == 'ワンタイムログインコードが不正です'
+  - desc: パラメーター異常（配列）：ind に配列は 400
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              - type: 0
+                loginId: ind02
+                loginCode: '000000'
+    test: |
+      current.res.status == 400 &&
+      current.res.body.message == 'リクエストが配列です'
+  - desc: パラメーター異常（桁数）：loginCode が 7 桁は 400
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 0
+              loginId: ind02
+              loginCode: '1234567'
+    test: |
+      current.res.status == 400 &&
+      len(current.res.body.reasons) == 1 &&
+      current.res.body.reasons[0].property == 'loginCode' &&
+      current.res.body.reasons[0].value == '1234567' &&
+      current.res.body.reasons[0].message == '設定できる最短・最長の値の長さが異なっています'
+  - desc: パラメーター異常（文字列）：loginCode が英字を含む場合は 400
+    op:
+      /operator/ind/login/onetime:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              type: 0
+              loginId: ind02
+              loginCode: 'a00001'
+    test: |
+      current.res.status == 400 &&
+      current.res.body.message == 'ワンタイムログインコードが不正です'
