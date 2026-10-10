@@ -1,0 +1,54 @@
+desc: "旧 operator のログイン（個人、SMS 認証なし）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/06-04.OperatorLogin.spec.ts。自動生成（記録したリクエストと検証を写した）。期限の日付は、生成した日（2026）の値のまま"
+runners:
+  op: http://127.0.0.1:3000
+  db: __FUNADANSU_E2E_OPERATOR_DB__
+steps:
+  - desc: "前提の初期化（initialData.sql と beforeAll）"
+    db:
+      query: |
+        DELETE FROM pxr_operator.sms_verification_code;
+        DELETE FROM pxr_operator.session;
+        DELETE FROM pxr_operator.one_time_login_code;
+        DELETE FROM pxr_operator.role_setting;
+        DELETE FROM pxr_operator.operator;
+        DELETE FROM pxr_operator.login_history;
+        DELETE FROM pxr_operator.password_history;
+        DELETE FROM pxr_operator.user_information;
+        DELETE FROM pxr_operator.manage_block_info;
+        
+        SELECT SETVAL('pxr_operator.sms_verification_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.operator_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.role_setting_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.login_history_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.password_history_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.one_time_login_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.user_information_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.manage_block_info_id_seq', 1, false);
+  - desc: "正常（個人(SMS認証なし)）"
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator
+                        (
+                            id, type, login_id, hpassword, mobile_phone, last_login_at,
+                            attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id
+                        )
+                        VALUES
+                        (
+                            1, 0, 'ind01', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '09011112222', NULL,
+                            NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'ind010'
+                        );
+  - desc: "正常（個人(SMS認証なし)）"
+    op:
+      /operator/ind/login:
+        post:
+          headers:
+            accept: "application/json"
+            Content-Type: "application/json"
+            Connection: "close"
+          body:
+            application/json: {"type":0,"loginId":"ind01","hpassword":"5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"}
+    test: |
+      current.res.status == 200 &&
+      current.res.body.operatorId == 1 &&
+      current.res.body.loginId == "ind01" &&
+      current.res.body.passwordChangedFlg == false

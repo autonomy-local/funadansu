@@ -16,8 +16,10 @@
 | `15-01.IdentifyCode.yml` | `15-01.IdentifyCode.spec.ts`（5 件） | GREEN |
 | `16-01.IndSmsVerificate.yml` | `16-01.IndSmsVerificate.spec.ts`（42 件） | 赤（期限の日付。D-004）。期限だけ 2030 にした診断版は全件 GREEN。元のテストが期待する `message` のうち 2 つは message.json に無いキーで、シナリオでは `message` が無いことを確かめる（下の注意） |
 | `16-02.IndSmsVerificateVerifiy.yml` | `16-02.IndSmsVerificateVerifiy.spec.ts`（7 件） | 赤（期限の日付。D-004）。期限だけ 2030 にした診断版は全件 GREEN |
+| `05-04.OperatorCancelDelete.yml` | `05-04.OperatorCancelDelete.spec.ts`（3 件） | GREEN（公式の期限のまま） |
+| `06-04.OperatorLogin.yml` | `06-04.OperatorLogin.spec.ts`（1 件） | GREEN（公式の期限のまま） |
 
-残りの operator のテストは、まだ書き換えていません。`src/tests` の supertest を使う 28 本のうち、10 本を書き換えました。残りは 01-01、01-02、02-01、04-01 から 04-04、05-01、05-02、05-04、06-01 から 06-04、11-01、12-01、13-01、17-01 です。
+残りの operator のテストは、まだ書き換えていません。試験の記録から生成した案（06-03 など）は、jest.mock（リポジトリの差し替え）や catalog のスタブに依るため、確実に GREEN になるまで入れていません。`src/tests` の supertest を使う 28 本のうち、10 本を書き換えました。残りは 01-01、01-02、02-01、04-01 から 04-04、05-01、05-02、05-04、06-01 から 06-04、11-01、12-01、13-01、17-01 です。
 
 ## 動かす前に
 
