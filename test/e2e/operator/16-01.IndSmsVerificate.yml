@@ -1,0 +1,576 @@
+desc: "旧 operator の SMS 検証コード発行。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/16-01.IndSmsVerificate.spec.ts。元の beforeAll（initialData.sql と INSERT）は最初の db ステップで行う。元のテストは期限 2025-01-27 のセッションを使うため、今日（2026）の日付では期限切れで赤になるものがある（D-004）"
+runners:
+  op: http://127.0.0.1:3000
+  db: __FUNADANSU_E2E_OPERATOR_DB__
+steps:
+  - desc: "前提の初期化（initialData.sql と beforeAll の INSERT）"
+    db:
+      query: |
+        DELETE FROM pxr_operator.sms_verification_code;
+        DELETE FROM pxr_operator.session;
+        DELETE FROM pxr_operator.one_time_login_code;
+        DELETE FROM pxr_operator.role_setting;
+        DELETE FROM pxr_operator.operator;
+        DELETE FROM pxr_operator.login_history;
+        DELETE FROM pxr_operator.password_history;
+        DELETE FROM pxr_operator.user_information;
+        DELETE FROM pxr_operator.manage_block_info;
+        
+        SELECT SETVAL('pxr_operator.sms_verification_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.operator_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.role_setting_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.login_history_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.password_history_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.one_time_login_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.user_information_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.manage_block_info_id_seq', 1, false);
+        INSERT INTO pxr_operator.operator
+                    (
+                        id, type, login_id, hpassword, name, auth,
+                        attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id
+                    )
+                    VALUES
+                    (
+                        1, 3, 'manage_member01', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '運営メンバー01', '{"member": {"add": true, "update": true, "delete": true}}',
+                        NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'manage_member013'
+                    ),
+                    (
+                        2, 0, 'ind01', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', NULL, '{"member": {"add": true, "update": true, "delete": true}}',
+                        '{"initialPasswordExpire": "2030-01-01T00:00:00.000+09:00"}', false, 'test_user', NOW(), 'test_user', NOW(), 'ind010'
+                    );
+                    INSERT INTO pxr_operator.session
+                    (
+                        id, operator_id, expire_at,
+                        is_disabled, created_by, created_at, updated_by, updated_at
+                    )
+                    VALUES
+                    (
+                        '00e58ec076ac2ca5c59509e9420e759ef022b9af08c7d06710b8d74a4ed43333', 1, '2025-01-27 23:59:59.000',
+                        false, 'test_user', NOW(), 'test_user', NOW()
+                    ),
+                    (
+                        '437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11', 2, '2025-01-27 23:59:59.000',
+                        false, 'test_user', NOW(), 'test_user', NOW()
+                    ),
+                    (
+                        '2212d4a969f24f5e341470c546006d6552d1aa3c0cf60abc3002c5b29143c1ca', 1, '2020-01-27 23:59:59.000',
+                        false, 'test_user', NOW(), 'test_user', NOW()
+                    );
+  - desc: "正常"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: "operator_type3_session=437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11"
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"氏名","item":[{"title":"姓","type":{"_value":30019,"_ver":1},"content":"サンプル"},{"title":"名","type":{"_value":30020,"_ver":1},"content":"太郎"}]},{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 200 &&
+      len(current.res.body) == 1 &&
+      current.res.body["result"] == "success"
+  - desc: "正常: 電話番号の先頭が 0 以外"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: "operator_type3_session=437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11"
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"氏名","item":[{"title":"姓","type":{"_value":30019,"_ver":1},"content":"サンプル"},{"title":"名","type":{"_value":30020,"_ver":1},"content":"太郎"}]},{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"80-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 200 &&
+      len(current.res.body) == 1 &&
+      current.res.body["result"] == "success"
+  - desc: "パラメータ異常：リクエストが空"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：リクエストが配列"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: [{"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"氏名","item":[{"title":"姓","type":{"_value":30019,"_ver":1},"content":"サンプル"},{"title":"名","type":{"_value":30020,"_ver":1},"content":"太郎"}]},{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"80-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}]
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"code":"9eee39d0-8c47-1df2-f88e-932d235a0865"}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":null}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInfomation._code"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation._code（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":null,"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation._vaule"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation._value（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":null,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation._value（数字以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":"a","_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation._ver"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation._ver（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":null},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation._ver（数字以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":"a"},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation.item-group[]"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1}}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[]（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":null}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[]（配列以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation.item-group[].title"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].title（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":null,"item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].title（文字列以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":1,"item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation.item-group[].item[]"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号"}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[]（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":null}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[]（配列以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation.item-group[].item[].title"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].title（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":null,"type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].title（文字列以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":1,"type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation.item-group[].item[].type"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].type（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":null,"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation.item-group[].item[].type._value"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].type._value（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":null,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].type._value（数字以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":"a","_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation.item-group[].item[].type._ver"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].type._ver（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":null},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].type._ver（数字以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":"a"},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ不足：userInformation.item-group[].item[].content"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].content（空）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":null,"changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].changable-flag（Boolean以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":"a","require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "パラメータ異常：userInformation.item-group[].item[].require-sms-verification（Boolean以外）"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":"a"}]}]}}
+    test: |
+      current.res.status == 400
+  - desc: "異常：オペレーターが個人以外"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: "operator_type3_session=00e58ec076ac2ca5c59509e9420e759ef022b9af08c7d06710b8d74a4ed43333"
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"氏名","item":[{"title":"姓","type":{"_value":30019,"_ver":1},"content":"サンプル"},{"title":"名","type":{"_value":30020,"_ver":1},"content":"太郎"}]},{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 401 &&
+      current.res.body.message == "この操作をするための権限がありません"
+  - desc: "異常：セッション有効期限切れ"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: "operator_type3_session=2212d4a969f24f5e341470c546006d6552d1aa3c0cf60abc3002c5b29143c1ca"
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"氏名","item":[{"title":"姓","type":{"_value":30019,"_ver":1},"content":"サンプル"},{"title":"名","type":{"_value":30020,"_ver":1},"content":"太郎"}]},{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":"080-0000-0000","changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 401 &&
+      current.res.body.message == "有効期限切れです"
+  - desc: "異常：連絡先電話番号が文字列以外"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: "operator_type3_session=437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11"
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"氏名","item":[{"title":"姓","type":{"_value":30019,"_ver":1},"content":"サンプル"},{"title":"名","type":{"_value":30020,"_ver":1},"content":"太郎"}]},{"title":"連絡先電話番号","item":[{"title":"連絡先電話番号","type":{"_value":30036,"_ver":1},"content":8000000000,"changable-flag":true,"require-sms-verification":true}]}]}}
+    test: |
+      current.res.status == 400 &&
+      current.res.body.message == nil
+  - desc: "異常：連絡先電話番号が存在しない"
+    op:
+      /operator/ind/sms-verificate:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: "operator_type3_session=437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11"
+          body:
+            application/json: {"userInformation":{"_code":{"_value":1000373,"_ver":1},"item-group":[{"title":"氏名","item":[{"title":"姓","type":{"_value":30019,"_ver":1},"content":"サンプル"},{"title":"名","type":{"_value":30020,"_ver":1},"content":"太郎"}]}]}}
+    test: |
+      current.res.status == 400 &&
+      current.res.body.message == nil

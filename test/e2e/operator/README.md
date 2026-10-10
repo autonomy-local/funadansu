@@ -14,8 +14,10 @@
 | `10-01.PasswordReset.yml` | `10-01.PasswordReset.spec.ts` | 期限の日付で赤になる（D-004）。期限だけ 2030 にした診断版は GREEN。カタログのスタブ（3001）が必要 |
 | `14-01.RequestArrayValidator.yml` | `14-01.RequestArrayValidator.spec.ts`（10 件） | GREEN（DB に触る前に 400 を返すため、DB の初期化は省く） |
 | `15-01.IdentifyCode.yml` | `15-01.IdentifyCode.spec.ts`（5 件） | GREEN |
+| `16-01.IndSmsVerificate.yml` | `16-01.IndSmsVerificate.spec.ts`（42 件） | 赤（期限の日付。D-004）。期限だけ 2030 にした診断版は全件 GREEN。元のテストが期待する `message` のうち 2 つは message.json に無いキーで、シナリオでは `message` が無いことを確かめる（下の注意） |
+| `16-02.IndSmsVerificateVerifiy.yml` | `16-02.IndSmsVerificateVerifiy.spec.ts`（7 件） | 赤（期限の日付。D-004）。期限だけ 2030 にした診断版は全件 GREEN |
 
-残りの operator のテストは、まだ書き換えていません（16-01、16-02）。
+残りの operator のテストは、まだ書き換えていません。`src/tests` の supertest を使う 28 本のうち、10 本を書き換えました。残りは 01-01、01-02、02-01、04-01 から 04-04、05-01、05-02、05-04、06-01 から 06-04、11-01、12-01、13-01、17-01 です。
 
 ## 動かす前に
 
@@ -33,3 +35,5 @@
 - 元のテストは `127.0.0.1` のホストから呼ばれる前提で、旧 operator の CSRF の検査を外しています。シナリオも `127.0.0.1` に向けます。
 - 各リクエストに `Connection: close` を付けています。古い keep-alive の接続を使い回すと、EOF で止まるためです。
 - 元のテストは、期限の日付を書き換えずに流します。期限切れで落ちる件は、そのまま赤で残します。
+- runn は、最初に失敗したステップで止まります。そのため、赤になったシナリオは最初の 1 件しか表示されません。全件の結果は、期限だけ 2030 にした診断版で確かめています（診断版は、リポジトリには入れていません）。
+- 16-01 は、元のテストが `message.PHONE_NUMBER_FIELD_IS_NOT_STRING` と `message.REQUIRED_PHONE_NUMBER` を期待しています。旧リポジトリの `config/message.json` にこの 2 つのキーはなく、元のテストは `message` が未定義であることを期待しています。シナリオも、`message` が無いことを確かめます。
