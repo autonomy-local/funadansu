@@ -26,6 +26,7 @@
 | D-003 | operator | 利用者の情報の検索（`pxrId`） | 要確認 | 仕様の確認待ち |
 | D-004 | operator | 旧 E2E の日付（テストデータの期限） | 要確認 | 方針決定済み（赤のまま残す） |
 | D-005 | operator | DB の列の NOT NULL（旧 DB の実物との差） | 要確認 | フェーズ3で比べる |
+| D-006 | operator | jest.mock に依る旧 E2E（E2E から外す） | 要確認 | 方針決定済み（単体テストへ） |
 
 ## 項目
 
@@ -96,6 +97,20 @@
 | 種別 | 要確認 |
 | 理由 | 実物の DB との比較は、フェーズ3の移行の作業で扱う（`db/README.md` の方針）。この作業では DDL を変えず、ローカルの検証用 DB だけ NOT NULL を外した |
 | 影響 | 検証用 DB と DDL が一致しない。旧 E2E の結果は、ローカルの検証用 DB で確かめたもの |
+| 関連 | なし（Issue は未起票） |
+
+### D-006 jest.mock に依る旧 E2E（E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | operator |
+| 対象 | 旧 operator の試験のうち、jest.mock（リポジトリや関数の差し替え）で内部の失敗を起こすもの |
+| 仕様 | 旧 operator のテスト：`01-02.OperatorAdd.libgetOperatorError.spec.ts`（1 件）、`04-02.OperatorUpdate.libgetOperatorError.spec.ts`（1 件）、`04-03.OperatorUpdate.libisSessionIdExistsError.spec.ts`（1 件）、`04-04.OperatorUpdate.libisAllAuthMemberExistsOtherThisIdError.spec.ts`（1 件）、`05-02.OperatorDelete.libgetOperatorError.spec.ts`（1 件）、`06-02.OperatorLogin.GeneratesSessionIdIfAlreadyUse.spec.ts`（1 件）、`06-03.OperatorLogin.GeneratesLoginIdIfAlreadyUse.spec.ts`（1 件）、`12-01.RoleAndAuth.spec.ts`（3 件）、`13-01.UserInfo.spec.ts`（ファイルの先頭で jest.mock を使う。差し替えの対象と件数は未確認） |
+| 元の実装 | 試験の中で、リポジトリや関数を差し替えて、ライブラリエラーや ID の重複を起こす |
+| Funadansu | E2E（runn）には入れない。単体テストに回し、同じ失敗の経路を Go 側の単体テストで確かめる |
+| 種別 | 要確認 |
+| 理由 | runn は外から HTTP で叩くため、差し替えた内部の失敗は起こせない。差し替えを runn で代用すると、試験の中身を変えることになるため（AGENTS.md の互換性） |
+| 影響 | E2E の本数から、この件数が外れる。単体テストで置き換えるまでは、これらの失敗の経路は検証されない。13-01 は、差し替えの範囲を確かめてから本数を確定する |
 | 関連 | なし（Issue は未起票） |
 
 <!--
