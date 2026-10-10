@@ -1,0 +1,85 @@
+desc: "旧 operator の 削除の取り消し。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/05-04.OperatorCancelDelete.spec.ts。自動生成（記録したリクエストと検証を写した）。期限の日付は、生成した日（2026）の値のまま"
+runners:
+  op: __FUNADANSU_E2E_OPERATOR_URL__
+  db: __FUNADANSU_E2E_OPERATOR_DB__
+steps:
+  - desc: "前提の初期化（initialData.sql と beforeAll）"
+    db:
+      query: |
+        DELETE FROM pxr_operator.sms_verification_code;
+        DELETE FROM pxr_operator.session;
+        DELETE FROM pxr_operator.one_time_login_code;
+        DELETE FROM pxr_operator.role_setting;
+        DELETE FROM pxr_operator.operator;
+        DELETE FROM pxr_operator.login_history;
+        DELETE FROM pxr_operator.password_history;
+        DELETE FROM pxr_operator.user_information;
+        DELETE FROM pxr_operator.manage_block_info;
+        
+        SELECT SETVAL('pxr_operator.sms_verification_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.operator_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.role_setting_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.login_history_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.password_history_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.one_time_login_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.user_information_id_seq', 1, false);
+        SELECT SETVAL('pxr_operator.manage_block_info_id_seq', 1, false);
+  - desc: "パラメーター不足 operatorId"
+    op:
+      /operator/cancelDelete/:
+        put:
+          headers:
+            accept: "application/json"
+            Content-Type: "application/json"
+            Connection: "close"
+    test: |
+      current.res.status == 400
+  - desc: "パラメーター異常 数字でない（operatorId）"
+    op:
+      /operator/cancelDelete/a:
+        put:
+          headers:
+            accept: "application/json"
+            Content-Type: "application/json"
+            Connection: "close"
+    test: |
+      current.res.status == 400
+  - desc: "正常"
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator
+                        (
+                            id, type, login_id, hpassword, name, auth,
+                            attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id
+                        )
+                        VALUES
+                        (
+                            1, 3, 'manage_member01', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '運営メンバー01', '{"member": {"add": true, "update": true, "delete": true}}',
+                            NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'manage_member013'
+                        ),
+                        (
+                            2, 0, 'ind01', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', NULL, NULL,
+                            NULL, true, 'test_user', NOW(), 'test_user', NOW(), '2'
+                        );
+                        INSERT INTO pxr_operator.role_setting
+                        (
+                            operator_id, role_catalog_code, role_catalog_version,
+                            is_disabled, created_by, created_at, updated_by, updated_at
+                        )
+                        VALUES
+                        (
+                            2, 43, 1,
+                            true, 'test_user', NOW(), 'test_user', NOW()
+                        );
+  - desc: "正常"
+    op:
+      /operator/cancelDelete/2:
+        put:
+          headers:
+            accept: "application/json"
+            Content-Type: "application/json"
+            Connection: "close"
+            Cookie: "operator_type3_session=437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11; operator_type0_session=123a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11"
+    test: |
+      current.res.status == 200 &&
+      current.res.body.operatorId == 2

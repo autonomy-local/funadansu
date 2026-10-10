@@ -1,0 +1,201 @@
+desc: 旧 operator の ログアウト。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/08-01.OperatorLogout.spec.ts
+runners:
+  op: __FUNADANSU_E2E_OPERATOR_URL__
+  db: __FUNADANSU_E2E_OPERATOR_DB__
+steps:
+  - desc: 前提の初期化（initialData.sql と同じ内容）
+    db:
+      query: |
+        DELETE FROM pxr_operator.sms_verification_code;
+        DELETE FROM pxr_operator.session;
+        DELETE FROM pxr_operator.one_time_login_code;
+        DELETE FROM pxr_operator.role_setting;
+        DELETE FROM pxr_operator.operator;
+        DELETE FROM pxr_operator.login_history;
+        DELETE FROM pxr_operator.password_history;
+        DELETE FROM pxr_operator.user_information;
+        DELETE FROM pxr_operator.manage_block_info;
+  - desc: 正常：運営（1）のセッションを入れ、そのセッションでログアウト（Cookie の type3）
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator (id, type, login_id, hpassword, name, auth, attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id)
+        VALUES (1, 3, 'manage_member01', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '運営メンバー01', '{"add": true, "update": true, "delete": true}', NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'manage_member013');
+        INSERT INTO pxr_operator.session (id, operator_id, expire_at, is_disabled, created_by, created_at, updated_by, updated_at)
+        VALUES ('437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11', 1, '2025-01-27 23:59:59.000', false, 'test_user', NOW(), 'test_user', NOW());
+  - desc: 正常：運営（1）のセッションを入れ、そのセッションでログアウト（Cookie の type3）（リクエスト）
+    op:
+      /operator/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: operator_type3_session=437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11
+          body:
+            application/json:
+              sessionId: 437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11
+    test: current.res.status == 200 && current.res.body.result == 'ok'
+  - desc: 正常：運営（2）のセッションを入れ、Cookie なしでログアウト
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator (id, type, login_id, hpassword, name, auth, attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id)
+        VALUES (2, 3, 'manage_member02', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '運営メンバー02', '{"add": true, "update": true, "delete": true}', NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'manage_member023');
+        INSERT INTO pxr_operator.session (id, operator_id, expire_at, is_disabled, created_by, created_at, updated_by, updated_at)
+        VALUES ('123a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11', 2, '2025-01-27 23:59:59.000', false, 'test_user', NOW(), 'test_user', NOW());
+  - desc: 正常：運営（2）のセッションを入れ、Cookie なしでログアウト（リクエスト）
+    op:
+      /operator/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              sessionId: 123a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11
+    test: current.res.status == 200 && current.res.body.result == 'ok'
+  - desc: パラメーター異常：空文字の sessionId は 400
+    op:
+      /operator/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              sessionId: ''
+    test: |
+      current.res.status == 400 &&
+      len(current.res.body.reasons) == 1 &&
+      current.res.body.reasons[0].property == 'sessionId' &&
+      current.res.body.reasons[0].message == 'この値は空を期待しません'
+  - desc: パラメーター異常：登録されていない sessionId は 400
+    op:
+      /operator/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              sessionId: '11111'
+    test: current.res.status == 400 && current.res.body.message == '対象のセッションIDが存在しません'
+  - desc: 正常（個人）：個人（3）のセッションを入れ、Cookie の type0 でログアウト
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator (id, type, login_id, hpassword, name, auth, attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id)
+        VALUES (3, 0, 'ind01', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '個人01', NULL, NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'ind010');
+        INSERT INTO pxr_operator.session (id, operator_id, expire_at, is_disabled, created_by, created_at, updated_by, updated_at)
+        VALUES ('437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e12', 3, '2025-01-27 23:59:59.000', false, 'test_user', NOW(), 'test_user', NOW());
+  - desc: 正常（個人）：個人（3）のセッションを入れ、Cookie の type0 でログアウト（リクエスト）
+    op:
+      /operator/ind/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: operator_type0_session=437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e12
+          body:
+            application/json:
+              sessionId: 437a5cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e12
+    test: current.res.status == 200 && current.res.body.result == 'ok'
+  - desc: 異常（個人）：Cookie なしは 401
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator (id, type, login_id, hpassword, name, auth, attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id)
+        VALUES (4, 0, 'ind02', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '個人02', NULL, NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'ind020');
+        INSERT INTO pxr_operator.session (id, operator_id, expire_at, is_disabled, created_by, created_at, updated_by, updated_at)
+        VALUES ('c17aeeafd492c5da95ed52ced225b2deae274aa09a19634b8d2171e6065bb9db', 4, '2025-01-27 23:59:59.000', false, 'test_user', NOW(), 'test_user', NOW());
+  - desc: 異常（個人）：Cookie なしは 401（リクエスト）
+    op:
+      /operator/ind/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              sessionId: c17aeeafd492c5da95ed52ced225b2deae274aa09a19634b8d2171e6065bb9db
+    test: current.res.status == 401 && current.res.body.message == '未ログインです'
+  - desc: 異常（個人）：Cookie のセッションIDと、リクエストのセッションIDが異なるは 401
+    db:
+      query: |
+        INSERT INTO pxr_operator.session (id, operator_id, expire_at, is_disabled, created_by, created_at, updated_by, updated_at)
+        VALUES ('1512299e08c3084aeb7dfbb3d76724e4ecaf546e87dc8c3cca79de28d3cefc2b', 3, '2025-01-27 23:59:59.000', false, 'test_user', NOW(), 'test_user', NOW());
+  - desc: 異常（個人）：Cookie のセッションIDと、リクエストのセッションIDが異なるは 401（リクエスト）
+    op:
+      /operator/ind/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: operator_type0_session=c17aeeafd492c5da95ed52ced225b2deae274aa09a19634b8d2171e6065bb9db
+          body:
+            application/json:
+              sessionId: 1512299e08c3084aeb7dfbb3d76724e4ecaf546e87dc8c3cca79de28d3cefc2b
+    test: current.res.status == 401 && current.res.body.message == '未ログインです'
+  - desc: 異常（個人）：セッションの有効期限切れは 401
+    db:
+      query: |
+        INSERT INTO pxr_operator.session (id, operator_id, expire_at, is_disabled, created_by, created_at, updated_by, updated_at)
+        VALUES ('12e58ec076ac2ca5c59509e9420e759ef022b9af08c7d06710b8d74a4ed43333', 3, '2020-01-27 23:59:59.000', false, 'test_user', NOW(), 'test_user', NOW());
+  - desc: 異常（個人）：セッションの有効期限切れは 401（リクエスト）
+    op:
+      /operator/ind/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: operator_type0_session=12e58ec076ac2ca5c59509e9420e759ef022b9af08c7d06710b8d74a4ed43333
+          body:
+            application/json:
+              sessionId: 12e58ec076ac2ca5c59509e9420e759ef022b9af08c7d06710b8d74a4ed43333
+    test: current.res.status == 401 && current.res.body.message == '有効期限切れです'
+  - desc: 異常：個人がログアウト（運営のエンドポイント）は 400
+    db:
+      query: |
+        INSERT INTO pxr_operator.operator (id, type, login_id, hpassword, name, auth, attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id)
+        VALUES (5, 0, 'ind03', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', NULL, NULL, NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'ind030');
+        INSERT INTO pxr_operator.session (id, operator_id, expire_at, is_disabled, created_by, created_at, updated_by, updated_at)
+        VALUES ('12345cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11', 4, '2025-01-27 23:59:59.000', false, 'test_user', NOW(), 'test_user', NOW());
+  - desc: 異常：個人がログアウト（運営のエンドポイント）は 400（リクエスト）
+    op:
+      /operator/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: operator_type0_session=12345cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11
+          body:
+            application/json:
+              sessionId: 12345cbc10da802a887f5e057c88fdc64a927332871ad2a987dfcb7d224e7e11
+    test: current.res.status == 400 && current.res.body.message == 'この操作をするための権限がありません'
+  - desc: 異常：個人以外がログアウト（個人のエンドポイント）は 401。initialData を入れ直してから
+    db:
+      query: |
+        DELETE FROM pxr_operator.session;
+        DELETE FROM pxr_operator.operator;
+        INSERT INTO pxr_operator.operator (id, type, login_id, hpassword, name, auth, attributes, is_disabled, created_by, created_at, updated_by, updated_at, unique_check_login_id)
+        VALUES (1, 3, 'menber_01', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', '個人01', NULL, NULL, false, 'test_user', NOW(), 'test_user', NOW(), 'menber_013');
+        INSERT INTO pxr_operator.session (id, operator_id, expire_at, is_disabled, created_by, created_at, updated_by, updated_at)
+        VALUES ('5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 1, '2025-01-27 23:59:59.000', false, 'test_user', NOW(), 'test_user', NOW());
+  - desc: 異常：個人以外がログアウト（個人のエンドポイント）は 401。initialData を入れ直してから（リクエスト）
+    op:
+      /operator/ind/logout:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            Cookie: operator_type3_session=5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+          body:
+            application/json:
+              sessionId: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+    test: current.res.status == 401 && current.res.body.message == '未ログインです'

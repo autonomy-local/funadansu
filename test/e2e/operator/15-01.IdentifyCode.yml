@@ -1,0 +1,87 @@
+desc: 旧 operator の 本人性確認コード登録API。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/15-01.IdentifyCode.spec.ts。session ヘッダーは元のテストと同じく encodeURIComponent した JSON を入れる。識別コードの登録は DB に書くので、先に sms_verification_code を空にする
+runners:
+  op: __FUNADANSU_E2E_OPERATOR_URL__
+  db: __FUNADANSU_E2E_OPERATOR_DB__
+steps:
+  - desc: 前提の初期化（sms_verification_code を空にする）
+    db:
+      query: |
+        DELETE FROM pxr_operator.sms_verification_code;
+  - desc: 正常：/operator/identifyCode（session は ind01）
+    op:
+      /operator/identifyCode:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            session: '%7B%22sessionId%22%3A%22dummy_session%22%2C%22operatorId%22%3A1%2C%22type%22%3A0%2C%22loginId%22%3A%22ind01%22%2C%22pxrId%22%3A%22ind01%22%2C%22name%22%3A%22%E5%80%8B%E4%BA%BA01%22%2C%22auth%22%3A%7B%22member%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%7D%2C%22lastLoginAt%22%3A%222021-01-01%2000%3A00%3A00%2B0900%22%2C%22passwordChangedFlg%22%3Afalse%2C%22loginProhibitedFlg%22%3Afalse%2C%22attributes%22%3Anull%2C%22roles%22%3Anull%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D'
+          body:
+            application/json:
+              identifyCode: test_identify_code_001
+              expirationAt: '2100-01-01 00:00:00+0900'
+    test: |
+      current.res.status == 200 &&
+      len(current.res.body) == 1 &&
+      current.res.body.result == 'success'
+  - desc: 正常（/ind/identifyCode）：session は ind01
+    op:
+      /operator/ind/identifyCode:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            session: '%7B%22sessionId%22%3A%22dummy_session%22%2C%22operatorId%22%3A1%2C%22type%22%3A0%2C%22loginId%22%3A%22ind01%22%2C%22pxrId%22%3A%22ind01%22%2C%22name%22%3A%22%E5%80%8B%E4%BA%BA01%22%2C%22auth%22%3A%7B%22member%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%7D%2C%22lastLoginAt%22%3A%222021-01-01%2000%3A00%3A00%2B0900%22%2C%22passwordChangedFlg%22%3Afalse%2C%22loginProhibitedFlg%22%3Afalse%2C%22attributes%22%3Anull%2C%22roles%22%3Anull%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D'
+          body:
+            application/json:
+              identifyCode: test_identify_code_001
+              expirationAt: '2100-01-01 00:00:00+0900'
+    test: |
+      current.res.status == 200 &&
+      len(current.res.body) == 1 &&
+      current.res.body.result == 'success'
+  - desc: バリデーションエラー：本人性確認コード不足は 400
+    op:
+      /operator/identifyCode:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              expirationAt: '2100-01-01 00:00:00+0900'
+    test: |
+      current.res.status == 400
+  - desc: バリデーションエラー：有効期限不足は 400
+    op:
+      /operator/identifyCode:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+          body:
+            application/json:
+              identifyCode: test_identify_code_error
+    test: |
+      current.res.status == 400
+  - desc: 異常：session の pxrId 不足は 400（この操作をするための権限がありません）
+    op:
+      /operator/identifyCode:
+        post:
+          headers:
+            accept: application/json
+            Content-Type: application/json
+            Connection: close
+            session: '%7B%22sessionId%22%3A%22dummy_session%22%2C%22operatorId%22%3A1%2C%22type%22%3A0%2C%22loginId%22%3A%22ind01%22%2C%22name%22%3A%22%E5%80%8B%E4%BA%BA01%22%2C%22auth%22%3A%7B%22member%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%7D%2C%22lastLoginAt%22%3A%222021-01-01%2000%3A00%3A00%2B0900%22%2C%22passwordChangedFlg%22%3Afalse%2C%22loginProhibitedFlg%22%3Afalse%2C%22attributes%22%3Anull%2C%22roles%22%3Anull%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D'
+          body:
+            application/json:
+              identifyCode: test_identify_code_error
+              expirationAt: '2100-01-01 00:00:00+0900'
+    test: |
+      current.res.status == 400 &&
+      len(current.res.body) == 2 &&
+      current.res.body.status == 400 &&
+      current.res.body.message == 'この操作をするための権限がありません'
