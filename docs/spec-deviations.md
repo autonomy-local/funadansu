@@ -38,6 +38,8 @@
 | D-015 | ctoken | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
 | D-016 | book-manage | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
 | D-017 | book-operate | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-018 | 全単位（旧 E2E） | 旧実装でも落ちる旧 E2E（ベースライン） | 要確認 | 記録済み（一覧は docs/e2e-baseline.md） |
+| D-019 | book-manage | 表 `region_use` が DDL に無い | 要確認 | フェーズ3で確かめる |
 
 ## 項目
 
@@ -277,6 +279,34 @@
 | 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
 | 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 1,677 件すべて（スタブ・モックに依る） |
 | 関連 | なし（Issue は未起票） |
+
+### D-018 旧実装でも落ちる旧 E2E（ベースライン）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | 全単位（operator、access-control、catalog、catalog-update、notification、book-manage） |
+| 対象 | `test/e2e/` の 32 本のシナリオ |
+| 仕様 | 旧実装の各サービス（固定したコミットは [openapi/README.md](../openapi/README.md) と同じ） |
+| 元の実装 | 旧実装のまま流しても、32 本のうち 21 本が落ちる（通るのは 11 本） |
+| Funadansu | 旧 E2E の本数は、この 11 本を基準にする。落ちるものは、テストの中身を書き換えずに赤のまま残す |
+| 種別 | 要確認 |
+| 理由 | 基準を、旧実装で通った本数に決めるため。落ちる理由は次のとおり：DB の NOT NULL（18 本。D-005）、表が無い（2 本。D-019）、期限切れなど（診断版で 5 本の operator の失敗。D-004）、原因未特定の 401（1 本） |
+| 影響 | 判定「旧基盤の E2E が、ベースライン以上に通ること」は 11 / 32。NOT NULL を外した診断版では 24 / 32 |
+| 関連 | #24（P0-6 / 6.4）。詳細は [docs/e2e-baseline.md](e2e-baseline.md) |
+
+### D-019 book-manage の表 `region_use` が DDL に無い
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | book-manage |
+| 対象 | 旧 E2E の 14-01、14-02（本人性確認書類の取得） |
+| 仕様 | 旧 book-manage の試験（`src/tests/14-01.Identification.spec.ts`、`14-02.Identification.spec.ts`） |
+| 元の実装 | 試験のデータ準備が `pxr_book_manage.region_use` を参照する |
+| Funadansu | `db/pxr_book_manage/001_tables.sql` に `region_use` の表が無い。DDL は ORM のエンティティから起こしたため、起こし方で抜けた可能性がある（未確認） |
+| 種別 | 要確認 |
+| 理由 | 旧 DB の実物に表があるかは確かめていない。非公開の DDL のため、フェーズ3の移行の作業で比べる（`db/README.md` の方針） |
+| 影響 | book-manage の 14-01、14-02 は、この表を入れるまで旧 E2E で通らない（D-018 の基準にも含まれる） |
+| 関連 | #24（P0-6 / 6.4） |
 
 <!--
 ### D-000 <題>
