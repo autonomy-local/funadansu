@@ -41,6 +41,7 @@
 | --- | --- | --- | --- |
 | フェーズ0（分類後） | 0 | 0 | E2E の候補は未確認。単体テストへ回すものは D-009 |
 | フェーズ0（候補の確認後） | 7 | 0 | access-control-manage の CreateAPIKey.validator.spec.ts（75 件）と、access-control の 6 本（62 件）が GREEN（`test/e2e/access-control/`） |
+| フェーズ0（Funadansu に向けて流す） | 0 | 7 | 全部 RED（6.3）。DB の準備（`api_access_permission.parameter` の NOT NULL。D-005）で 1 本、残りは応答の不一致で止まる |
 
 ## 差分台帳への記録
 
