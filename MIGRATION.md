@@ -63,7 +63,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | proxy | 未着手 | — | — | 0 / 0（分類のみ。D-008） | [proxy.md](docs/units/proxy.md) |
 | 2 | operator | 未着手 | 未着手 | 未着手 | 6 / 11（シナリオ） | [operator.md](docs/units/operator.md) |
-| 3 | access-control | 未着手 | 未着手 | 未着手 | 75 / 75（候補 137 件のうち 75 件を確認。残り 62 件は未確認。D-009） | [access-control.md](docs/units/access-control.md) |
+| 3 | access-control | 未着手 | 未着手 | 未着手 | 137 / 137（候補 137 件。access-control-manage の 75 件と、access-control の 62 件。単体テストへ回すもの 184 件は D-009） | [access-control.md](docs/units/access-control.md) |
 | 4 | catalog | 未着手 | 未着手 | 未着手 | 1187 / 1187（pxr-catalog-service の候補 7 ファイル 1144 件と、catalog-update の候補のうち 43 件。catalog-update の残り 19 件は単体テストへ。D-010） | [catalog.md](docs/units/catalog.md) |
 | 5 | notification | 未着手 | 未着手 | 未着手 | 31 / 31（候補の確認。単体テストへ回すもの 55 件は D-011） | [notification.md](docs/units/notification.md) |
 | 6 | identity-verify | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-012） | [identity-verify.md](docs/units/identity-verify.md) |

@@ -8,7 +8,7 @@
 | 旧実装 | pxr-access-control-manage-service、pxr-access-control-service |
 | OpenAPI | `openapi/legacy/` の access-control-manage.json、access-control.json |
 | 旧スキーマ | 未確認（フェーズ1で DDL を見る） |
-| 状態 | 作業中（フェーズ0：旧 E2E の候補のうち、access-control-manage の 75 件を確認し E2E に入れた。残りは下の「残っていること」） |
+| 状態 | 作業中（フェーズ0：旧 E2E の候補 137 件のうち、access-control-manage の 75 件と access-control の 62 件を確認し、E2E に入れた。単体テストへ回すもの 184 件は D-009） |
 | 関連 Issue | #22（P0-6 / 6.2） |
 
 ## この単位が担うこと
@@ -40,7 +40,7 @@
 | 時点 | 通過（シナリオ） | 失敗（シナリオ） | 備考 |
 | --- | --- | --- | --- |
 | フェーズ0（分類後） | 0 | 0 | E2E の候補は未確認。単体テストへ回すものは D-009 |
-| フェーズ0（候補の確認後） | 1 | 0 | access-control-manage の CreateAPIKey.validator.spec.ts（75 件）が GREEN（`test/e2e/access-control/CreateAPIKey.validator.yml`） |
+| フェーズ0（候補の確認後） | 7 | 0 | access-control-manage の CreateAPIKey.validator.spec.ts（75 件）と、access-control の 6 本（62 件）が GREEN（`test/e2e/access-control/`） |
 
 ## 差分台帳への記録
 
@@ -66,7 +66,7 @@
 ## 残っていること
 
 - [x] access-control-manage の候補 75 件を確かめ、GREEN のものを `test/e2e/access-control/` に入れた
-- [ ] access-control（旧）の候補 62 件（00-00、02-01、03-01、03-02、03-08、03-09）を確かめる。00-00 は DB の行に依るため要確認。03-01 と 03-02 は応答の値を受け渡すため、runn の書き方を決める
+- [x] access-control（旧）の候補 62 件（00-00、02-01、03-01、03-02、03-08、03-09）を確かめ、GREEN の 62 件を `test/e2e/access-control/` に入れた（試験ごとに、前のデータを前提に続けて流す 1 本のシナリオ）
 - [ ] 単体テストへ回した 184 件を、Go 側の単体テストで置き換える（フェーズ1以降）
 - [ ] 旧 OpenAPI と旧実装を読み、この単位が担うことと依存を書く（フェーズ1）
 - [ ] 外に出す関数の一覧を決める（フェーズ1）

@@ -1,0 +1,72 @@
+desc: "旧 access-control の試験（03-08.Collate.NoMacthError.spec.ts）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-access-control-service/blob/5cd2d6a/src/tests/03-08.Collate.NoMacthError.spec.ts （スタブ・モックなし）。試験は前のデータを前提に続けて流すため、1 本のシナリオに順番どおり並べた"
+runners:
+  ac: __FUNADANSU_E2E_AC_URL__
+  db: __FUNADANSU_E2E_AC_DB__
+steps:
+  - desc: "試験の DB 準備（initialData.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- 対象テーブルのデータをすべて削除
+        DELETE FROM pxr_access_control.caller_role;
+        DELETE FROM pxr_access_control.api_access_permission;
+        DELETE FROM pxr_access_control.api_token;
+        
+        -- 対象テーブルのシーケンスを初期化
+        SELECT SETVAL('pxr_access_control.api_access_permission_id_seq', 1, false);
+        SELECT SETVAL('pxr_access_control.api_token_id_seq', 1, false);
+        SELECT SETVAL('pxr_access_control.caller_role_id_seq', 1, false);
+  - desc: "試験の DB 操作（SQL）"
+    db:
+      query: |
+        
+        INSERT INTO pxr_access_control.api_access_permission
+        (
+        token,
+        target_block_code, target_api_url, target_api_method, target_user_id, expiration_date,
+        caller_block_code, caller_api_url, caller_api_method, caller_api_code,
+        caller_wf_code, caller_wf_version, 
+        caller_app_code, caller_app_version,
+        caller_operator_type, caller_operator_login_id, 
+        parameter, 
+        is_disabled,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES(
+        'bbbbbbbbb',
+        1, '/info-account-manage/{userId}/contract', 'GET', 'xxx_yyy.pxr-root', '2030-01-01 00:00:00', 
+        1, '/book-manage/{userId}/contract', 'GET', '', 
+        1, 1, 
+        1, 1, 
+        1, 'xxx_yyy.pxr-root',
+        'dataType: [{_value: 1000008,_ver: 1}]', 
+        false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        );
+  - desc: "1. APIアクセス許可照合 異常系 正常: APIトークンテーブルにデータがある(ハッシュ不一致)"
+    ac:
+      "/access-control/collate":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: {"caller":{"apiUrl":"/book-manage/{userId}/contract"},"target":{"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET","apiToken":"aaaaaaaaaaa"}}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"トークンの取得に失敗しました\\\"}\")"
+  - desc: "2. APIアクセス許可照合 異常系 正常: APIトークンテーブルにデータがある(ハッシュ不一致)"
+    ac:
+      "/access-control/collate":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "session": "%7B%22sessionId%22%3A%22sessionId%22%2C%22operatorId%22%3A1%2C%22type%22%3A3%2C%22loginId%22%3A%22loginid%22%2C%22name%22%3A%22test-user%22%2C%22mobilePhone%22%3A%220311112222%22%2C%22auth%22%3A%7B%22add%22%3Atrue%2C%22update%22%3Atrue%2C%22delete%22%3Atrue%7D%2C%22lastLoginAt%22%3A%222020-01-01T00%3A00%3A00.000%2B0900%22%2C%22attributes%22%3A%7B%7D%2C%22roles%22%3A%5B%7B%22_value%22%3A1%2C%22_ver%22%3A1%7D%5D%2C%22block%22%3A%7B%22_value%22%3A1000110%2C%22_ver%22%3A1%7D%2C%22actor%22%3A%7B%22_value%22%3A1000001%2C%22_ver%22%3A1%7D%7D"
+            "connection": "close"
+          body:
+            application/json: {"caller":{"apiUrl":"/book-manage/{userId}/contract"},"target":{"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET","apiToken":"aaaaaaaaaaa"}}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"トークンの取得に失敗しました\\\"}\")"

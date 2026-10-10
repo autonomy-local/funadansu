@@ -1,0 +1,181 @@
+desc: "旧 access-control の試験（00-00.Validation.spec.ts）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-access-control-service/blob/5cd2d6a/src/tests/00-00.Validation.spec.ts （スタブ・モックなし）。試験は前のデータを前提に続けて流すため、1 本のシナリオに順番どおり並べた"
+runners:
+  ac: __FUNADANSU_E2E_AC_URL__
+  db: __FUNADANSU_E2E_AC_DB__
+steps:
+  - desc: "1. Access Control Service トークン取得API 配列ではない"
+    ac:
+      "/access-control/token":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"caller":{"blockCode":1111111,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"},"requestBody":{"auth":{"member":{"update":true,"delete":true}}}},"target":{"blockCode":2222222,"apiUrl":"/operator/11111","apiMethod":"PUT"}}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"配列ではありません\\\"}\")"
+  - desc: "2. Access Control Service トークン取得API 配列ではない"
+    ac:
+      "/access-control/token":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"caller":{"blockCode":1111111,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"},"requestBody":{"auth":{"member":{"update":true,"delete":true}}}},"target":{"blockCode":2222222,"apiUrl":"/operator/11111","apiMethod":"PUT"}}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"配列ではありません\\\"}\")"
+  - desc: "3. Access Control Service トークン取得API オペレーター種別がアプリケーションではない場合、loginIdが必要"
+    ac:
+      "/access-control/token":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":null},"requestBody":{"auth":{"member":{"update":true,"delete":true}}}},"target":{"blockCode":2222222,"apiUrl":"/operator/11111","apiMethod":"POST"}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"オペレーター.ログインIDの設定が必要です\\\"}\")"
+  - desc: "4. Access Control Service トークン取得API オペレーター種別がアプリケーションではない場合、loginIdが必要"
+    ac:
+      "/access-control/token":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":null},"requestBody":{"auth":{"member":{"update":true,"delete":true}}}},"target":{"blockCode":2222222,"apiUrl":"/operator/11111","apiMethod":"POST"}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"オペレーター.ログインIDの設定が必要です\\\"}\")"
+  - desc: "5. Access Control Service トークン取得API リクエストボディ.targetの_codeプロパティがオブジェクト"
+    ac:
+      "/access-control/token":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"},"requestBody":{"auth":{"member":{"update":true,"delete":true}}}},"target":{"blockCode":2222222,"apiUrl":"/book-operate/document/xxx_yyy.pxr-root","apiMethod":"POST"}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"対象のURLへアクセスする場合、リクエストボディ.targetに_codeプロパティが必要です\\\"}\")"
+  - desc: "6. Access Control Service トークン取得API リクエストボディ.targetの_codeプロパティがオブジェクト"
+    ac:
+      "/access-control/token":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"},"requestBody":{"auth":{"member":{"update":true,"delete":true}}}},"target":{"blockCode":2222222,"apiUrl":"/book-operate/document/xxx_yyy.pxr-root","apiMethod":"POST"}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"対象のURLへアクセスする場合、リクエストボディ.targetに_codeプロパティが必要です\\\"}\")"
+  - desc: "7. Access Control Service トークン発行API リクエストボディが空"
+    ac:
+      "/access-control":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストが空です\\\"}\")"
+  - desc: "8. Access Control Service トークン発行API リクエストボディが空"
+    ac:
+      "/access-control":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストが空です\\\"}\")"
+  - desc: "9. Access Control Service トークン発行API 配列ではない"
+    ac:
+      "/access-control":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020-11-19T10:06:34.000+0900","parameter":null}}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"配列ではありません\\\"}\")"
+  - desc: "10. Access Control Service トークン発行API 配列ではない"
+    ac:
+      "/access-control":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020-11-19T10:06:34.000+0900","parameter":null}}
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"配列ではありません\\\"}\")"
+  - desc: "11. Access Control Service トークン発行API オペレーター種別がアプリケーションではない場合、loginIdが必要"
+    ac:
+      "/access-control":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020-11-19T10:06:34.000+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"オペレーター.ログインIDの設定が必要です\\\"}\")"
+  - desc: "12. Access Control Service トークン発行API オペレーター種別がアプリケーションではない場合、loginIdが必要"
+    ac:
+      "/access-control":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020-11-19T10:06:34.000+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"オペレーター.ログインIDの設定が必要です\\\"}\")"
+  - desc: "13. Access Control Service トークン発行API オペレーター種別がアプリケーションではない場合、loginIdが必要"
+    ac:
+      "/access-control":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020-11-19T10:06:34.000+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"有効期限を現在日時より過去を設定することはできません\\\"}\")"
+  - desc: "14. Access Control Service トークン発行API オペレーター種別がアプリケーションではない場合、loginIdが必要"
+    ac:
+      "/access-control":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"blockCode":1111111,"apiUrl":"https://~~~/book-manage/{userId}/contract","apiMethod":"GET","userId":"xxx_yyy.pxr-root","apiCode":"0abdbf81-686c-423b-823a-ac0d889b0ae6","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":2222222,"apiUrl":"https://~~~/info-account-manage/{userId}/contract","apiMethod":"GET","expirationDate":"2020-11-19T10:06:34.000+0900","parameter":null}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"有効期限を現在日時より過去を設定することはできません\\\"}\")"
+  - desc: "15. Access Control Service トークン照合API 配列ではない"
+    ac:
+      "/access-control/collate":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiUrl":"/book-manage/{userId}/contract"},"target":{"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET","apiToken":"82887e0e25fb3b83ff6bd0442bdd903eac793566469b5847fbf29c5517b2a8e4"}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストが配列です\\\"}\")"
+  - desc: "16. Access Control Service トークン照合API 配列ではない"
+    ac:
+      "/access-control/collate":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiUrl":"/book-manage/{userId}/contract"},"target":{"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET","apiToken":"82887e0e25fb3b83ff6bd0442bdd903eac793566469b5847fbf29c5517b2a8e4"}}]
+    test: "current.res.status == 400 && current.res.body == fromJSON(\"{\\\"status\\\":400,\\\"message\\\":\\\"リクエストが配列です\\\"}\")"

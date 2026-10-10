@@ -49,11 +49,11 @@
 
 ### pxr-access-control-service（単位：access-control）
 
-試験ファイル 17、試験 121 件。単体テストへ 59 件、E2E の候補（未確認）62 件
+試験ファイル 17、試験 121 件。単体テストへ 59 件（D-009 の一覧に次の行）、E2E に入れた 62 件（GREEN。`test/e2e/access-control/`）
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
-| `src/tests/00-00.Validation.spec.ts` | 8 | 候補（未確認） | なし |
+| `src/tests/00-00.Validation.spec.ts` | 8 | E2E（GREEN。`00-00.Validation.yml`） | なし |
 | `src/tests/01-01.Token.spec.ts` | 40 | 単体テストへ（D-009） | スタブ: StubServer |
 | `src/tests/01-10.Token.Abnormal3.spec.ts` | 1 | 単体テストへ（D-009） | スタブ: StubServer |
 | `src/tests/01-12.Token.AccessNomal1.spec.ts` | 1 | 単体テストへ（D-009） | スタブ: StubServer |
@@ -65,11 +65,11 @@
 | `src/tests/01-19.Token.ApiTokenReceiveCheckOK.spec.ts` | 1 | 単体テストへ（D-009） | スタブ: StubServer |
 | `src/tests/01-28.Token.BinaryUpload.spec.ts` | 3 | 単体テストへ（D-009） | スタブ: StubServer |
 | `src/tests/01-29.Token.OperatorError1.spec.ts` | 7 | 単体テストへ（D-009） | スタブ: StubServer |
-| `src/tests/02-01.AccessControl.spec.ts` | 30 | 候補（未確認） | なし |
-| `src/tests/03-01.Collate.spec.ts` | 12 | 候補（未確認） | なし |
-| `src/tests/03-02.CollateOk.spec.ts` | 10 | 候補（未確認） | なし |
-| `src/tests/03-08.Collate.NoMacthError.spec.ts` | 1 | 候補（未確認） | なし |
-| `src/tests/03-09.Collate.Macth.spec.ts` | 1 | 候補（未確認） | なし |
+| `src/tests/02-01.AccessControl.spec.ts` | 30 | E2E（GREEN。`02-01.AccessControl.yml`。応答の token は実行ごとに変わるため、後のステップは `steps[N]` で受け渡す） | なし |
+| `src/tests/03-01.Collate.spec.ts` | 12 | E2E（GREEN。`03-01.Collate.yml`） | なし |
+| `src/tests/03-02.CollateOk.spec.ts` | 10 | E2E（GREEN。`03-02.CollateOk.yml`） | なし |
+| `src/tests/03-08.Collate.NoMacthError.spec.ts` | 1 | E2E（GREEN。`03-08.Collate.NoMacthError.yml`） | なし |
+| `src/tests/03-09.Collate.Macth.spec.ts` | 1 | E2E（GREEN。`03-09.Collate.Macth.yml`） | なし |
 
 ### pxr-catalog-service（単位：catalog）
 
