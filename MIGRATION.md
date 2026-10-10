@@ -51,7 +51,7 @@
 | 5.1〜5.3 | IaC（Pulumi、sops、dev のスタック） | 未着手 |
 | 5.4 | 最小のデプロイの手順（ローカルの CI → `pulumi up`・`nixos-rebuild`）と運用の手引きの初版（`docs/operations/`） | 未着手 |
 | 6.1 | 旧 OpenAPI を `openapi/legacy/` に集める（取得元のコミットを [openapi/README.md](openapi/README.md) に記録） | ✅ 完了 |
-| 6.2〜6.4 | 旧基盤の E2E（URL の切り替え、Funadansu に向けて全部 RED、旧実装のベースライン） | 作業中（operator と proxy。[operator.md](docs/units/operator.md)、[proxy.md](docs/units/proxy.md)） |
+| 6.2〜6.4 | 旧基盤の E2E（URL の切り替え、Funadansu に向けて全部 RED、旧実装のベースライン） | 作業中（operator と proxy。残りの単位は試験の分類のみ。[docs/units/](docs/units/README.md)） |
 | 7.1 | CI | 未着手 |
 | 7.2 | 脆弱性と秘密情報の検査（govulncheck、CodeQL・gosec、秘密情報の検出、Actions の SHA 固定と最小権限、Renovate） | 未着手 |
 | 7.3 | （フェーズ1までに）SBOM、署名、OpenSSF Scorecard | 未着手 |
@@ -63,15 +63,15 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | proxy | 未着手 | — | — | 0 / 0（分類のみ。D-008） | [proxy.md](docs/units/proxy.md) |
 | 2 | operator | 未着手 | 未着手 | 未着手 | 6 / 11（シナリオ） | [operator.md](docs/units/operator.md) |
-| 3 | access-control | 未着手 | 未着手 | 未着手 | — | [access-control.md](docs/units/access-control.md) |
-| 4 | catalog | 未着手 | 未着手 | 未着手 | — | [catalog.md](docs/units/catalog.md) |
-| 5 | notification | 未着手 | 未着手 | 未着手 | — | [notification.md](docs/units/notification.md) |
-| 6 | identity-verify | 未着手 | 未着手 | 未着手 | — | [identity-verify.md](docs/units/identity-verify.md) |
-| 7 | certificate | 未着手 | 未着手 | 未着手 | — | [certificate.md](docs/units/certificate.md) |
-| 8 | binary | 未着手 | 未着手 | 未着手 | — | [binary.md](docs/units/binary.md) |
-| 9 | ctoken | 未着手 | 未着手 | 未着手 | — | [ctoken.md](docs/units/ctoken.md) |
-| 10 | book-manage | 未着手 | 未着手 | 未着手 | — | [book-manage.md](docs/units/book-manage.md) |
-| 11 | book-operate | 未着手 | 未着手 | 未着手 | — | [book-operate.md](docs/units/book-operate.md) |
+| 3 | access-control | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-009） | [access-control.md](docs/units/access-control.md) |
+| 4 | catalog | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-010） | [catalog.md](docs/units/catalog.md) |
+| 5 | notification | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-011） | [notification.md](docs/units/notification.md) |
+| 6 | identity-verify | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-012） | [identity-verify.md](docs/units/identity-verify.md) |
+| 7 | certificate | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-013） | [certificate.md](docs/units/certificate.md) |
+| 8 | binary | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-014） | [binary.md](docs/units/binary.md) |
+| 9 | ctoken | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-015） | [ctoken.md](docs/units/ctoken.md) |
+| 10 | book-manage | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-016） | [book-manage.md](docs/units/book-manage.md) |
+| 11 | book-operate | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-017） | [book-operate.md](docs/units/book-operate.md) |
 
 状態は「未着手 / 作業中 / 完了」で書きます。
 
