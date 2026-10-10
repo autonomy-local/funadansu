@@ -34,7 +34,7 @@
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
-| `src/tests/CreateAPIKey.validator.spec.ts` | 75 | 候補（未確認） | なし |
+| `src/tests/CreateAPIKey.validator.spec.ts` | 75 | E2E（確認済み、GREEN） | なし |
 | `src/tests/CreateActorAPIKey.spec.ts` | 6 | 単体テストへ（D-009） | スタブ: StubAccessControlServer, StubCatalogServer, StubOperatorServer 他 |
 | `src/tests/CreateAppWfUserAPIKey.spec.ts` | 6 | 単体テストへ（D-009） | スタブ: StubAccessControlServer, StubCatalogServer, StubOperatorServer 他 |
 | `src/tests/CreateBlockAPIKey.spec.ts` | 6 | 単体テストへ（D-009） | スタブ: StubAccessControlServer, StubBookManageServer, StubCatalogServer 他 |

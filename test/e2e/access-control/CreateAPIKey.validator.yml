@@ -1,0 +1,829 @@
+desc: "旧 access-control-manage のリクエスト検証（CreateAPIKey.validator.spec.ts の 75 件）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-access-control-manage-service/blob/3aabd9ad922bdad35133d3955d53b0a545bdc4fa/src/tests/CreateAPIKey.validator.spec.ts。記録した要求と応答を写した（スタブ・モックなし）"
+runners:
+  acm: __FUNADANSU_E2E_ACM_URL__
+steps:
+  - desc: "1. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store リクエストが空"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            text/plain: ""
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"caller\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"target\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "2. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store リクエストが配列ではない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"caller\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"target\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "3. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value","operator":{"key":"value"}},"target":{"key":"value"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 6 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"type\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][5]) == 3 && current.res.body[\"reasons\"][5][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][5][\"value\"] == nil && current.res.body[\"reasons\"][5][\"message\"] == \"この値は必須値です\""
+  - desc: "4. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value","operator":{"key":"value"}}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 5 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"type\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"target\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\""
+  - desc: "5. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value"},"target":{"key":"value"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 6 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"operator\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][5]) == 3 && current.res.body[\"reasons\"][5][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][5][\"value\"] == nil && current.res.body[\"reasons\"][5][\"message\"] == \"この値は必須値です\""
+  - desc: "6. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store リクエストの宛先Blockコードがなく、呼出元情報にユーザーIDがない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"利用者IDの指定が必要です\""
+  - desc: "7. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store APIコードがUUIDではない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == \"9cf3da0-5f6e-46c7-b913-0227482abebc\" && current.res.body[\"reasons\"][0][\"message\"] == \"UUIDではありません\""
+  - desc: "8. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store リクエストする値の型が、規定外"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":{"key":"value"},"blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && len(current.res.body[\"reasons\"][0][\"value\"]) == 1 && current.res.body[\"reasons\"][0][\"value\"][\"key\"] == \"value\" && current.res.body[\"reasons\"][0][\"message\"] == \"UUIDではありません\""
+  - desc: "9. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store リクエストメソッドが規定外"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"OPTIONS","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"userId":"","apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"ADD"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"このメソッドは許可されていません\""
+  - desc: "10. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store 期待する型ではない（数値）"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":"1","loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":"string","apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"type\" && current.res.body[\"reasons\"][0][\"value\"] == \"1\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"blockCode\" && current.res.body[\"reasons\"][1][\"value\"] == \"string\" && current.res.body[\"reasons\"][1][\"message\"] == \"数値ではありません\""
+  - desc: "11. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store オペレーターの種別が認可外"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":4,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"このオペレーター種別は許可されていません\""
+  - desc: "12. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store オペレーター種別(0)の場合の必須値が、未設定"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"個人タイプの指定では、ログインIDの指定が必要です\""
+  - desc: "13. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store オペレーター種別(3)の場合の必須値が、未設定"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":3,"loginId":1234567}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"loginId\" && current.res.body[\"reasons\"][0][\"value\"] == 1234567 && current.res.body[\"reasons\"][0][\"message\"] == \"文字列ではありません\""
+  - desc: "14. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store オペレーター種別(2)の場合の必須値が、配列だが空である"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"loginId":"xxx_yyy.pxr-root","app":{"_value":"1","_ver":2},"role":[]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"データ種コード配列が取得できませんでした\""
+  - desc: "15. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store オペレーター種別(2)の場合の必須値が、数値ではない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"loginId":"xxx_yyy.pxr-root","app":{"_value":"1","_ver":2},"role":[{"_value":"1","_ver":"string"}]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][0][\"value\"] == \"string\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\""
+  - desc: "16. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store オペレーター種別(2)の場合の必須値が、存在しない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_value\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "17. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store オペレーター種別(2)の場合の必須値が、存在しない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":"string"}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][0][\"value\"] == \"string\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\""
+  - desc: "18. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store ログインIDが未設定"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":2}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"データ種コード配列が取得できませんでした\""
+  - desc: "19. Access-Control Manage Service データ蓄積APIトークン生成指示 POST: /access-control-manage/store ログインIDが数値・文字列ではない"
+    acm:
+      "/access-control-manage/store":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":2},"loginId":[]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"loginId\" && len(current.res.body[\"reasons\"][0][\"value\"]) == 0 && current.res.body[\"reasons\"][0][\"message\"] == \"文字列ではありません\""
+  - desc: "20. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous リクエストが空"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            text/plain: ""
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"caller\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"target\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "21. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous リクエストが配列ではない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"caller\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"target\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "22. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value","operator":{"key":"value"}},"target":{"key":"value"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 6 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"type\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][5]) == 3 && current.res.body[\"reasons\"][5][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][5][\"value\"] == nil && current.res.body[\"reasons\"][5][\"message\"] == \"この値は必須値です\""
+  - desc: "23. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value","operator":{"key":"value"}}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 5 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"type\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"target\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\""
+  - desc: "24. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value"},"target":{"key":"value"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 6 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"operator\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][5]) == 3 && current.res.body[\"reasons\"][5][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][5][\"value\"] == nil && current.res.body[\"reasons\"][5][\"message\"] == \"この値は必須値です\""
+  - desc: "25. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous リクエストの宛先Blockコードがなく、呼出元情報にユーザーIDがない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"requestBody\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\""
+  - desc: "26. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous APIコードがUUIDではない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == \"9cf3da0-5f6e-46c7-b913-0227482abebc\" && current.res.body[\"reasons\"][0][\"message\"] == \"UUIDではありません\""
+  - desc: "27. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous リクエストする値の型が、規定外"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":{"key":"value"},"blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && len(current.res.body[\"reasons\"][0][\"value\"]) == 1 && current.res.body[\"reasons\"][0][\"value\"][\"key\"] == \"value\" && current.res.body[\"reasons\"][0][\"message\"] == \"UUIDではありません\""
+  - desc: "28. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous リクエストメソッドが規定外"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"OPTIONS","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"ADD"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"このメソッドは許可されていません\""
+  - desc: "29. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous 期待する型ではない（数値）"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","userId":"xxx_yyy.1","apiMethod":"GET","operator":{"type":"1","loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":"string","apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"type\" && current.res.body[\"reasons\"][0][\"value\"] == \"1\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"blockCode\" && current.res.body[\"reasons\"][1][\"value\"] == \"string\" && current.res.body[\"reasons\"][1][\"message\"] == \"数値ではありません\""
+  - desc: "30. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous オペレーターの種別が認可外"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":4,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"このオペレーター種別は許可されていません\""
+  - desc: "31. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous オペレーター種別(0)の場合の必須値が、未設定"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"個人タイプの指定では、ログインIDの指定が必要です\""
+  - desc: "32. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous オペレーター種別(3)の場合の必須値が、未設定"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":3}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"個人タイプの指定では、ログインIDの指定が必要です\""
+  - desc: "33. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous オペレーター種別(2)の場合の必須値が、配列だが空である"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"loginId":"xxx_yyy.pxr-root","app":{"_value":"1","_ver":2},"role":[]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"requestBody\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\""
+  - desc: "34. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous オペレーター種別(2)の場合の必須値が、数値ではない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"loginId":"xxx_yyy.pxr-root","app":{"_value":"1","_ver":2},"role":[{"_value":1,"_ver":1},{"_value":"1","_ver":"string"}]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][0][\"value\"] == \"string\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\""
+  - desc: "35. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous オペレーター種別(2)の場合の必須値が、存在しない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_value\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "36. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous オペレーター種別(2)の場合の必須値が、存在しない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":"string"}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][0][\"value\"] == \"string\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\""
+  - desc: "37. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous ログインIDが未設定"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":2}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"requestBody\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\""
+  - desc: "38. Access-Control Manage Service 継続的データ共有APIトークン生成指示 POST: /access-control-manage/share/continuous ログインIDが数値・文字列ではない"
+    acm:
+      "/access-control-manage/share/continuous":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":2},"loginId":[]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"loginId\" && len(current.res.body[\"reasons\"][0][\"value\"]) == 0 && current.res.body[\"reasons\"][0][\"message\"] == \"文字列ではありません\""
+  - desc: "39. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp リクエストが空"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            text/plain: ""
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"caller\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"target\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "40. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp リクエストが配列ではない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"caller\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"target\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "41. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value","operator":{"key":"value"}},"target":{"key":"value"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 6 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"type\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][5]) == 3 && current.res.body[\"reasons\"][5][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][5][\"value\"] == nil && current.res.body[\"reasons\"][5][\"message\"] == \"この値は必須値です\""
+  - desc: "42. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value","operator":{"key":"value"}}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 5 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"type\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"target\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\""
+  - desc: "43. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value"},"target":{"key":"value"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 6 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"operator\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][5]) == 3 && current.res.body[\"reasons\"][5][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][5][\"value\"] == nil && current.res.body[\"reasons\"][5][\"message\"] == \"この値は必須値です\""
+  - desc: "44. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp リクエストの宛先Blockコードがなく、呼出元情報にユーザーIDがない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":null,"userId":"","apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"requestBody\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\""
+  - desc: "45. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp APIコードがUUIDではない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"userId":"","apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == \"9cf3da0-5f6e-46c7-b913-0227482abebc\" && current.res.body[\"reasons\"][0][\"message\"] == \"UUIDではありません\""
+  - desc: "46. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp リクエストする値の型が、規定外"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":{"key":"value"},"blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && len(current.res.body[\"reasons\"][0][\"value\"]) == 1 && current.res.body[\"reasons\"][0][\"value\"][\"key\"] == \"value\" && current.res.body[\"reasons\"][0][\"message\"] == \"UUIDではありません\""
+  - desc: "47. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp リクエストメソッドが規定外"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"OPTIONS","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"userId":"","apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"ADD"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"このメソッドは許可されていません\""
+  - desc: "48. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp 期待する型ではない（数値）"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":"1","loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":"string","userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"type\" && current.res.body[\"reasons\"][0][\"value\"] == \"1\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"blockCode\" && current.res.body[\"reasons\"][1][\"value\"] == \"string\" && current.res.body[\"reasons\"][1][\"message\"] == \"数値ではありません\""
+  - desc: "49. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp オペレーターの種別が認可外"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":4,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"このオペレーター種別は許可されていません\""
+  - desc: "50. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp オペレーター種別(0)の場合の必須値が、未設定"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0}},"target":{"blockCode":null,"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"個人タイプの指定では、ログインIDの指定が必要です\""
+  - desc: "51. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp オペレーター種別(3)の場合の必須値が、未設定"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":3}},"target":{"blockCode":null,"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"個人タイプの指定では、ログインIDの指定が必要です\""
+  - desc: "52. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp オペレーター種別(2)の場合の必須値が、配列だが空である"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","userId":"xxx_yyy.1","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"loginId":"xxx_yyy.pxr-root","app":{"_value":"1","_ver":2},"role":[]}},"target":{"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"requestBody\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\""
+  - desc: "53. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp オペレーター種別(2)の場合の必須値が、数値ではない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"loginId":"xxx_yyy.pxr-root","app":{"_value":"1","_ver":2},"role":[{"_value":"1","_ver":"string"}]}},"target":{"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][0][\"value\"] == \"string\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\""
+  - desc: "54. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp オペレーター種別(2)の場合の必須値が、存在しない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{}}},"target":{"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_value\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "55. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp オペレーター種別(2)の場合の必須値が、存在しない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":"string"}}},"target":{"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][0][\"value\"] == \"string\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\""
+  - desc: "56. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp ログインIDが未設定"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":2}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"requestBody\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\""
+  - desc: "57. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp ログインIDが数値・文字列ではない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":2},"loginId":[]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"loginId\" && len(current.res.body[\"reasons\"][0][\"value\"]) == 0 && current.res.body[\"reasons\"][0][\"message\"] == \"文字列ではありません\""
+  - desc: "58. Access-Control Manage Service 一時的データ共有APIトークン生成指示 POST: /access-control-manage/share/temp 一時的データ共有コードがUUID形式ではない"
+    acm:
+      "/access-control-manage/share/temp":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","tempShareCode":"9cf3da0-5f6e-46c7-b913-0227482abebc","operator":{"type":2,"app":{"_value":"1","_ver":2},"loginId":"member01"}},"target":{"userId":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"requestBody\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\""
+  - desc: "59. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block リクエストが空"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            text/plain: ""
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"caller\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"target\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "60. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block リクエストが配列ではない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: {}
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"caller\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"target\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "61. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value","operator":{"key":"value"}},"target":{"key":"value"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 6 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"type\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][5]) == 3 && current.res.body[\"reasons\"][5][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][5][\"value\"] == nil && current.res.body[\"reasons\"][5][\"message\"] == \"この値は必須値です\""
+  - desc: "62. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value","operator":{"key":"value"}}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 5 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"type\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"target\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\""
+  - desc: "63. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block リクエスト配列のオブジェクトに、必須値がない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"key":"value"},"target":{"key":"value"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 6 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][2]) == 3 && current.res.body[\"reasons\"][2][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][2][\"value\"] == nil && current.res.body[\"reasons\"][2][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][3]) == 3 && current.res.body[\"reasons\"][3][\"property\"] == \"operator\" && current.res.body[\"reasons\"][3][\"value\"] == nil && current.res.body[\"reasons\"][3][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][4]) == 3 && current.res.body[\"reasons\"][4][\"property\"] == \"apiUrl\" && current.res.body[\"reasons\"][4][\"value\"] == nil && current.res.body[\"reasons\"][4][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][5]) == 3 && current.res.body[\"reasons\"][5][\"property\"] == \"apiMethod\" && current.res.body[\"reasons\"][5][\"value\"] == nil && current.res.body[\"reasons\"][5][\"message\"] == \"この値は必須値です\""
+  - desc: "64. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block リクエストの宛先Blockコードがなく、呼出元情報にユーザーIDがない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"宛先ブロックの指定が必要です\""
+  - desc: "65. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block APIコードがUUIDではない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && current.res.body[\"reasons\"][0][\"value\"] == \"9cf3da0-5f6e-46c7-b913-0227482abebc\" && current.res.body[\"reasons\"][0][\"message\"] == \"UUIDではありません\""
+  - desc: "66. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block リクエストする値の型が、規定外"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":{"key":"value"},"blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"apiCode\" && len(current.res.body[\"reasons\"][0][\"value\"]) == 1 && current.res.body[\"reasons\"][0][\"value\"][\"key\"] == \"value\" && current.res.body[\"reasons\"][0][\"message\"] == \"UUIDではありません\""
+  - desc: "67. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block リクエストメソッドが規定外"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"OPTIONS","operator":{"type":0,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"ADD"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"このメソッドは許可されていません\""
+  - desc: "68. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block 期待する型ではない（数値）"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":"1","loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":"string","apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"type\" && current.res.body[\"reasons\"][0][\"value\"] == \"1\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"blockCode\" && current.res.body[\"reasons\"][1][\"value\"] == \"string\" && current.res.body[\"reasons\"][1][\"message\"] == \"数値ではありません\""
+  - desc: "69. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block オペレーターの種別が認可外"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":4,"loginId":"xxx_yyy.pxr-root"}},"target":{"blockCode":4444444,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"このオペレーター種別は許可されていません\""
+  - desc: "70. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block オペレーター種別(0)の場合の必須値が、未設定"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":0}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"個人タイプの指定では、ログインIDの指定が必要です\""
+  - desc: "71. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block オペレーター種別(3)の場合の必須値が、未設定"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":3}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"個人タイプの指定では、ログインIDの指定が必要です\""
+  - desc: "72. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block オペレーター種別(2)の場合の必須値が、配列だが空である"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"loginId":"xxx_yyy.pxr-root","app":{"_value":"1","_ver":2},"role":[]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && current.res.body[\"message\"] == \"宛先ブロックの指定が必要です\""
+  - desc: "73. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block オペレーター種別(2)の場合の必須値が、数値ではない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"loginId":"xxx_yyy.pxr-root","app":{"_value":"1","_ver":2},"role":[{"_value":"1","_ver":"string"}]}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][0][\"value\"] == \"string\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\""
+  - desc: "74. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block オペレーター種別(2)の場合の必須値が、存在しない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 2 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_value\" && current.res.body[\"reasons\"][0][\"value\"] == nil && current.res.body[\"reasons\"][0][\"message\"] == \"この値は必須値です\" && len(current.res.body[\"reasons\"][1]) == 3 && current.res.body[\"reasons\"][1][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][1][\"value\"] == nil && current.res.body[\"reasons\"][1][\"message\"] == \"この値は必須値です\""
+  - desc: "75. Access-Control Manage Service Block間APIトークン生成指示 POST: /access-control-manage/block オペレーター種別(2)の場合の必須値が、存在しない"
+    acm:
+      "/access-control-manage/block":
+        post:
+          headers:
+            "content-type": "application/json"
+            "accept": "application/json"
+            "connection": "close"
+          body:
+            application/json: [{"caller":{"apiCode":"c9cf3da0-5f6e-46c7-b913-0227482abebc","blockCode":4444444,"userId":"xxx_yyy.1","apiUrl":"/book-manage/{userId}/contract","apiMethod":"GET","operator":{"type":2,"app":{"_value":"1","_ver":"string"}}},"target":{"blockCode":null,"apiUrl":"/info-account-manage/{userId}/contract","apiMethod":"GET"}}]
+    test: "current.res.status == 400 && len(current.res.body) == 2 && current.res.body[\"status\"] == 400 && len(current.res.body[\"reasons\"]) == 1 && len(current.res.body[\"reasons\"][0]) == 3 && current.res.body[\"reasons\"][0][\"property\"] == \"_ver\" && current.res.body[\"reasons\"][0][\"value\"] == \"string\" && current.res.body[\"reasons\"][0][\"message\"] == \"数値ではありません\""
