@@ -70,7 +70,7 @@
 | 7 | certificate | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-013） | [certificate.md](docs/units/certificate.md) |
 | 8 | binary | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-014） | [binary.md](docs/units/binary.md) |
 | 9 | ctoken | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-015） | [ctoken.md](docs/units/ctoken.md) |
-| 10 | book-manage | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-016） | [book-manage.md](docs/units/book-manage.md) |
+| 10 | book-manage | 未着手 | 未着手 | 未着手 | 4 / 4（候補の確認。単体テストへ回すもの 1920 件は D-016） | [book-manage.md](docs/units/book-manage.md) |
 | 11 | book-operate | 未着手 | 未着手 | 未着手 | 0 / 0（分類のみ。D-017） | [book-operate.md](docs/units/book-operate.md) |
 
 状態は「未着手 / 作業中 / 完了」で書きます。

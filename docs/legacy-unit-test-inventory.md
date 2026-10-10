@@ -21,7 +21,7 @@
 | certificate | D-013 | 256 | 256 | 0 |
 | binary | D-014 | 127 | 127 | 0 |
 | ctoken | D-015 | 442 | 442 | 0 |
-| book-manage | D-016 | 2,785 | 1,920 | 4 |
+| book-manage | D-016 | 2,785 | 1,920 | 4（確認済み。E2E に入れた） |
 | book-operate | D-017 | 1,677 | 1,677 | 0 |
 
 単位 proxy は [proxy.md](units/proxy.md)（D-008、350 件すべて単体テストへ）、operator は [operator.md](units/operator.md)（D-006、D-007）で、この一覧の対象外です。
@@ -304,7 +304,7 @@
 
 ### pxr-book-manage-service（単位：book-manage）
 
-試験ファイル 69、試験 2785 件。単体テストへ 1920 件、E2E の候補（未確認）4 件
+試験ファイル 69、試験 2785 件。単体テストへ 1920 件、E2E（確認済み、GREEN、`test/e2e/book-manage/`）4 件
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
@@ -321,8 +321,8 @@
 | `src/tests/11-01.BookClose.spec.ts` | 14 | 単体テストへ（D-016） | スタブ: StubCatalogServer, StubCatalogServerBookClose, StubIdServiceServer 他 |
 | `src/tests/12-01.GetCooperate.spec.ts` | 20 | 単体テストへ（D-016） | スタブ: StubCatalogServer, StubCatalogServerGetCooperate, StubOperatorServer 他 |
 | `src/tests/13-01.LoginCode.spec.ts` | 13 | 単体テストへ（D-016） | スタブ: StubOperatorServer, StubOperatorServerLoginCode |
-| `src/tests/14-01.Identification.spec.ts` | 2 | 候補（未確認） | なし |
-| `src/tests/14-02.Identification.spec.ts` | 2 | 候補（未確認） | なし |
+| `src/tests/14-01.Identification.spec.ts` | 2 | E2E（確認済み、GREEN） | なし |
+| `src/tests/14-02.Identification.spec.ts` | 2 | E2E（確認済み、GREEN） | なし |
 | `src/tests/15-01.CooperateRequest.spec.ts` | 33 | 単体テストへ（D-016） | スタブ: StubOperatorServer, StubOperatorService |
 | `src/tests/16-01.ForceDeletion.spec.ts` | 7 | 単体テストへ（D-016） | スタブ: StubServer; jest.mock 1 件 |
 | `src/tests/16-02.ForceDeletion.FailedUpdateOperator.spec.ts` | 2 | 単体テストへ（D-016） | スタブ: StubServer; jest.mock 1 件 |
