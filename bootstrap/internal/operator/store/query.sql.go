@@ -9,6 +9,15 @@ import (
 	"context"
 )
 
+const deleteOperatorForTest = `-- name: DeleteOperatorForTest :exec
+DELETE FROM pxr_operator.operator WHERE id = $1
+`
+
+func (q *Queries) DeleteOperatorForTest(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteOperatorForTest, id)
+	return err
+}
+
 const findOperatorByID = `-- name: FindOperatorByID :one
 
 SELECT id, pxr_id
@@ -28,4 +37,35 @@ func (q *Queries) FindOperatorByID(ctx context.Context, id int64) (FindOperatorB
 	var i FindOperatorByIDRow
 	err := row.Scan(&i.ID, &i.PxrID)
 	return i, err
+}
+
+const insertOperatorForTest = `-- name: InsertOperatorForTest :one
+INSERT INTO pxr_operator.operator (
+    type, login_id, hpassword, pxr_id, user_information, name, mobile_phone, mail,
+    auth, attributes, lock_flg, user_id, region_catalog_code, app_catalog_code,
+    wf_catalog_code, client_id, created_by, updated_by, unique_check_login_id
+) VALUES (
+    0, $1, 'test', $2, '{}', 'test', '', '', '{}', '{}', false, $3, 0, 0, 0,
+    'test', 'test', 'test', $4
+) RETURNING id
+`
+
+type InsertOperatorForTestParams struct {
+	LoginID            string
+	PxrID              string
+	UserID             string
+	UniqueCheckLoginID string
+}
+
+// テスト用のデータの投入と削除。本番の経路では使わない（テストの後始末のため）。
+func (q *Queries) InsertOperatorForTest(ctx context.Context, arg InsertOperatorForTestParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, insertOperatorForTest,
+		arg.LoginID,
+		arg.PxrID,
+		arg.UserID,
+		arg.UniqueCheckLoginID,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }

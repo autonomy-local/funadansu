@@ -14,9 +14,7 @@ func TestFindOperator(t *testing.T) {
 
 	existing, existingPxrID := insertOperator(t, db)
 	deleted, _ := insertOperator(t, db)
-	if _, err := db.ExecContext(context.Background(), `DELETE FROM pxr_operator.operator WHERE id = $1`, deleted); err != nil {
-		t.Fatalf("delete: %v", err)
-	}
+	deleteOperator(t, db, deleted)
 
 	tests := []struct {
 		name    string

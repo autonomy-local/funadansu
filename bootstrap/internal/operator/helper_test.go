@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/autonomy-local/funadansu/bootstrap/internal/operator/store"
 	"github.com/autonomy-local/funadansu/bootstrap/internal/platform"
 )
 
@@ -32,28 +33,33 @@ func testDB(t *testing.T) *sql.DB {
 }
 
 // insertOperator は、テスト用のオペレーターを1件入れ、テストの後で消します。
-// 旧スキーマは空の表なので、必要な列だけをここで埋めます。
+// 投入と削除も sqlc のクエリを使います（store/query.sql の InsertOperatorForTest など）。
 func insertOperator(t *testing.T, db *sql.DB) (OperatorID, PxrID) {
 	t.Helper()
+	q := store.New(db)
 	suffix := randomHex(t)
 	pxrID := PxrID("pxr-" + suffix)
-	var id int64
-	err := db.QueryRowContext(context.Background(), `
-		INSERT INTO pxr_operator.operator (
-			type, login_id, hpassword, pxr_id, user_information, name, mobile_phone, mail,
-			auth, attributes, lock_flg, user_id, region_catalog_code, app_catalog_code,
-			wf_catalog_code, client_id, created_by, updated_by, unique_check_login_id
-		) VALUES (
-			0, $1, 'test', $2, '{}', 'test', '', '', '{}', '{}', false, $3, 0, 0, 0,
-			'test', 'test', 'test', $4
-		) RETURNING id`, "login-"+suffix, string(pxrID), "user-"+suffix, "login-"+suffix).Scan(&id)
+	id, err := q.InsertOperatorForTest(context.Background(), store.InsertOperatorForTestParams{
+		LoginID:            "login-" + suffix,
+		PxrID:              string(pxrID),
+		UserID:             "user-" + suffix,
+		UniqueCheckLoginID: "login-" + suffix,
+	})
 	if err != nil {
 		t.Fatalf("insert operator: %v", err)
 	}
 	t.Cleanup(func() {
-		_, _ = db.ExecContext(context.Background(), `DELETE FROM pxr_operator.operator WHERE id = $1`, id)
+		_ = q.DeleteOperatorForTest(context.Background(), id)
 	})
 	return OperatorID(id), pxrID
+}
+
+// deleteOperator は、テスト用のオペレーターを消す（存在しない ID の確認に使う）。
+func deleteOperator(t *testing.T, db *sql.DB, id OperatorID) {
+	t.Helper()
+	if err := store.New(db).DeleteOperatorForTest(context.Background(), int64(id)); err != nil {
+		t.Fatalf("delete operator: %v", err)
+	}
 }
 
 func randomHex(t *testing.T) string {
