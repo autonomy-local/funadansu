@@ -43,7 +43,8 @@
 | 3.2 | 規約の決定：ID・エラー・ログの形（`docs/conventions.md` の本文 7〜9 節） | ✅ 完了 |
 | 3.3 | 規約の決定：テストの方針、「外に出す関数の一覧」の書式（`docs/conventions.md` の本文 5・6 節） | ✅ 完了 |
 | 3.4 | セキュリティの設計方針（ADR 0007）と脅威モデル（`docs/security/threat-model.md`） | ✅ 完了 |
-| 4.1〜4.5 | bootstrap（Go のサービス、Hono の proxy、イメージ、テスト、疎通） | 未着手 |
+| 4.1 | bootstrap：Go のサービスの骨組み（`bootstrap/`。platform と見本のエンドポイント1本） | ✅ 完了 |
+| 4.2〜4.5 | bootstrap（Hono の proxy、イメージ、テスト、疎通） | 未着手 |
 | 5.1〜5.3 | IaC（Pulumi、sops、dev のスタック） | 未着手 |
 | 5.4 | 最小のデプロイの手順（ローカルの CI → `pulumi up`・`nixos-rebuild`）と運用の手引きの初版（`docs/operations/`） | 未着手 |
 | 6.1〜6.4 | 旧基盤の E2E（OpenAPI の収集、URL の切り替え、Funadansu に向けて全部 RED、旧実装のベースライン） | 未着手 |
