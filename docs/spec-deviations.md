@@ -28,6 +28,7 @@
 | D-005 | operator | DB の列の NOT NULL（旧 DB の実物との差） | 要確認 | フェーズ3で比べる |
 | D-006 | operator | jest.mock に依る旧 E2E（E2E から外す） | 要確認 | 方針決定済み（単体テストへ） |
 | D-007 | operator | catalog のスタブに依る旧 E2E（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。スタブの仕様は docs/legacy-catalog-stub.md） |
+| D-008 | proxy | 下流のスタブに依る旧 E2E（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。スタブ確認後に、残りを決める） |
 
 ## 項目
 
@@ -126,6 +127,20 @@
 | 種別 | 要確認 |
 | 理由 | スタブの応答は、試験の内容と結びついていて、E2E で確かめている中身が分かりにくいため。単体テストに移すと、何を確かめているかを試験の名前で示せる |
 | 影響 | E2E の本数から、この件数が外れる。単体テストで置き換えるまでは、catalog の応答に依る経路は検証されない。確かめた結果、スタブなしで GREEN だった 03-01、05-03、05-04、06-04、14-01、15-01 は、E2E に残している |
+| 関連 | なし（Issue は未起票） |
+
+### D-008 下流のスタブに依る旧 E2E（E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | proxy |
+| 対象 | 旧 block-proxy の試験（`src/tests/` の 11 ファイル、350 件）。ほぼすべてが、下流（service-A、B、C、operator、catalog、access-control、binary-manage、book-operate）をスタブ（`StubServer.ts`）に差し替えて、中継の結果を確かめる |
+| 仕様 | 旧 block-proxy の OpenAPI（`openapi/legacy/block-proxy.json`） |
+| 元の実装 | 試験の `beforeAll` で `config/port.json` と `config/permission.json` を `mocks.*.json` に差し替える（10 ファイル）。下流の応答はスタブで決める |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | proxy の試験は中継の結果を見るため、下流が実物でないと意味がない。下流の実物（catalog など）は、この移行の時点ではまだ Funadansu に無い。スタブに依る試験を E2E に残すと、中身を変えることになるため（AGENTS.md の互換性） |
+| 影響 | proxy の E2E は、いまは 0 本。下流に依らず、proxy 自身の検査（認証の拒否、入力の検査など）だけで完結する試験を、後で見つけて E2E に残す（[docs/units/proxy.md](units/proxy.md)）。単体テストで置き換えるまでは、中継の経路は検証されない |
 | 関連 | なし（Issue は未起票） |
 
 <!--
