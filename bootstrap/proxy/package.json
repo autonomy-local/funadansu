@@ -1,0 +1,19 @@
+{
+  "name": "funadansu-proxy",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:bun": "bun run src/entry/bun.ts",
+    "dev:workers": "wrangler dev",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "4.13.9"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.2",
+    "typescript": "5.9.3",
+    "wrangler": "4.141.0"
+  }
+}
