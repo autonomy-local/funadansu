@@ -1,6 +1,6 @@
 desc: "旧 operator の SMS 検証コード検証。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/16-02.IndSmsVerificateVerifiy.spec.ts。元の beforeAll（initialData.sql と INSERT）は最初の db ステップで行う。元のテストは期限 2025-01-27 のセッションを使うため、今日（2026）の日付では期限切れで赤になるものがある（D-004）"
 runners:
-  op: http://127.0.0.1:3000
+  op: __FUNADANSU_E2E_OPERATOR_URL__
   db: __FUNADANSU_E2E_OPERATOR_DB__
 steps:
   - desc: "前提の初期化（initialData.sql と beforeAll の INSERT）"

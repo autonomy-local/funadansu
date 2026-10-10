@@ -1,6 +1,6 @@
 desc: "旧 operator の 削除の取り消し。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/05-04.OperatorCancelDelete.spec.ts。自動生成（記録したリクエストと検証を写した）。期限の日付は、生成した日（2026）の値のまま"
 runners:
-  op: http://127.0.0.1:3000
+  op: __FUNADANSU_E2E_OPERATOR_URL__
   db: __FUNADANSU_E2E_OPERATOR_DB__
 steps:
   - desc: "前提の初期化（initialData.sql と beforeAll）"

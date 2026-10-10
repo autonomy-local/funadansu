@@ -26,7 +26,8 @@
 2. テストデータを入れる DB を用意します。旧 operator の `ormconfig.json` と同じ `pxr_pod`、ユーザー `pxr_operator_user` です。スキーマは `db/` の DDL から作ります（NOT NULL の差は D-005）。
 3. 接続先の DSN を環境変数で渡します。
    `export FUNADANSU_E2E_OPERATOR_DB='postgres://pxr_operator_user:<パスワード>@localhost:5432/pxr_pod?sslmode=disable'`
-4. 実行します（runn v1.11.1）。DSN はシナリオに書かず、`run.sh` が `__FUNADANSU_E2E_OPERATOR_DB__` を環境変数の値に置き換えた一時ファイルで流します（runn は runners の中で環境変数を展開しないため）。
+4. 接続先（op）は `FUNADANSU_E2E_OPERATOR_URL` で切り替えます（既定は `http://127.0.0.1:3000`）。Funadansu に向けるときは、その URL を入れます。CSRF の検査は 127.0.0.1 の Host を除外するため、別のホストに向けるときは CSRF の扱いを確かめてください。
+5. 実行します（runn v1.11.1）。DSN はシナリオに書かず、`run.sh` が `__FUNADANSU_E2E_OPERATOR_DB__` を環境変数の値に置き換えた一時ファイルで流します（runn は runners の中で環境変数を展開しないため）。
    `test/e2e/operator/run.sh`（引数でシナリオを絞れます）
 
 ## 注意

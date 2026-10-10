@@ -1,6 +1,6 @@
 desc: 旧 operator の リクエストボディが配列のときのバリデーション（配列は 400）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/14-01.RequestArrayValidator.spec.ts。元のテストは DB を初期化してから動かすが、この 400 は DB に触る前に返るため、初期化の手順は省いている。identifyCode は元のテストで文字列を送っているが、ここでは配列を送る（runn が文字列のボディを引用符付きで送るため）
 runners:
-  op: http://127.0.0.1:3000
+  op: __FUNADANSU_E2E_OPERATOR_URL__
 steps:
   - desc: バリデーションエラー：パスワード更新
     op:

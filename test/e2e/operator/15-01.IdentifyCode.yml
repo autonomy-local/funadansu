@@ -1,6 +1,6 @@
 desc: 旧 operator の 本人性確認コード登録API。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-operator-service/blob/453e6385a7545be45d6dccc284004457cb8d28f6/src/tests/15-01.IdentifyCode.spec.ts。session ヘッダーは元のテストと同じく encodeURIComponent した JSON を入れる。識別コードの登録は DB に書くので、先に sms_verification_code を空にする
 runners:
-  op: http://127.0.0.1:3000
+  op: __FUNADANSU_E2E_OPERATOR_URL__
   db: __FUNADANSU_E2E_OPERATOR_DB__
 steps:
   - desc: 前提の初期化（sms_verification_code を空にする）
