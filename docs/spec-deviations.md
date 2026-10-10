@@ -105,12 +105,12 @@
 | --- | --- |
 | 単位 | operator |
 | 対象 | 旧 operator の試験のうち、jest.mock（リポジトリや関数の差し替え）で内部の失敗を起こすもの |
-| 仕様 | 旧 operator のテスト：`01-02.OperatorAdd.libgetOperatorError.spec.ts`（1 件）、`04-02.OperatorUpdate.libgetOperatorError.spec.ts`（1 件）、`04-03.OperatorUpdate.libisSessionIdExistsError.spec.ts`（1 件）、`04-04.OperatorUpdate.libisAllAuthMemberExistsOtherThisIdError.spec.ts`（1 件）、`05-02.OperatorDelete.libgetOperatorError.spec.ts`（1 件）、`06-02.OperatorLogin.GeneratesSessionIdIfAlreadyUse.spec.ts`（1 件）、`06-03.OperatorLogin.GeneratesLoginIdIfAlreadyUse.spec.ts`（1 件）、`12-01.RoleAndAuth.spec.ts`（3 件）、`13-01.UserInfo.spec.ts`（ファイルの先頭で jest.mock を使う。差し替えの対象と件数は未確認） |
+| 仕様 | 旧 operator のテスト：`01-02.OperatorAdd.libgetOperatorError.spec.ts`（1 件）、`04-02.OperatorUpdate.libgetOperatorError.spec.ts`（1 件）、`04-03.OperatorUpdate.libisSessionIdExistsError.spec.ts`（1 件）、`04-04.OperatorUpdate.libisAllAuthMemberExistsOtherThisIdError.spec.ts`（1 件）、`05-02.OperatorDelete.libgetOperatorError.spec.ts`（1 件）、`06-02.OperatorLogin.GeneratesSessionIdIfAlreadyUse.spec.ts`（1 件）、`06-03.OperatorLogin.GeneratesLoginIdIfAlreadyUse.spec.ts`（1 件）、`12-01.RoleAndAuth.spec.ts`（3 件） |
 | 元の実装 | 試験の中で、リポジトリや関数を差し替えて、ライブラリエラーや ID の重複を起こす |
 | Funadansu | E2E（runn）には入れない。単体テストに回し、同じ失敗の経路を Go 側の単体テストで確かめる |
 | 種別 | 要確認 |
 | 理由 | runn は外から HTTP で叩くため、差し替えた内部の失敗は起こせない。差し替えを runn で代用すると、試験の中身を変えることになるため（AGENTS.md の互換性） |
-| 影響 | E2E の本数から、この件数が外れる。単体テストで置き換えるまでは、これらの失敗の経路は検証されない。13-01 は、差し替えの範囲を確かめてから本数を確定する |
+| 影響 | E2E の本数から、この件数が外れる。単体テストで置き換えるまでは、これらの失敗の経路は検証されない。`13-01.UserInfo.spec.ts` は、失敗を起こすための差し替えではなく、`Config` の設定値（正規表現の検査など）を上書きする差し替えなので、この項目には入れない（別に要確認） |
 | 関連 | なし（Issue は未起票） |
 
 <!--
