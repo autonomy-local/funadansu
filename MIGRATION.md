@@ -51,7 +51,9 @@
 | 5.1〜5.3 | IaC（Pulumi、sops、dev のスタック） | 未着手 |
 | 5.4 | 最小のデプロイの手順（ローカルの CI → `pulumi up`・`nixos-rebuild`）と運用の手引きの初版（`docs/operations/`） | 未着手 |
 | 6.1 | 旧 OpenAPI を `openapi/legacy/` に集める（取得元のコミットを [openapi/README.md](openapi/README.md) に記録） | ✅ 完了 |
-| 6.2〜6.4 | 旧基盤の E2E（URL の切り替え、Funadansu に向けて全部 RED、旧実装のベースライン） | 作業中（operator と proxy。残りの単位は試験の分類のみ。[docs/units/](docs/units/README.md)） |
+| 6.2 | 旧基盤の E2E の書き換え（operator と access-control、catalog、notification、book-manage の一部）。残りの単位は試験の分類のみ | 作業中（[docs/units/](docs/units/README.md)） |
+| 6.3 | 旧基盤の E2E（URL の切り替え、Funadansu に向けて全部 RED） | ✅ 完了 |
+| 6.4 | （推奨）旧実装のベースライン（[docs/e2e-baseline.md](docs/e2e-baseline.md)。厳密 11 / 32、差分台帳 D-018） | ✅ 完了 |
 | 7.1 | CI | 未着手 |
 | 7.2 | 脆弱性と秘密情報の検査（govulncheck、CodeQL・gosec、秘密情報の検出、Actions の SHA 固定と最小権限、Renovate） | 未着手 |
 | 7.3 | （フェーズ1までに）SBOM、署名、OpenSSF Scorecard | 未着手 |
@@ -88,7 +90,7 @@
 
 | 日付 | 対象 | 通過 | 失敗 | 備考 |
 | --- | --- | --- | --- | --- |
-| | 旧実装（ベースライン） | | | フェーズ0の 6.4 |
+| 2026-10-10 | 旧実装（ベースライン） | 11 | 21 | フェーズ0の 6.4。旧実装の 7 サービス（固定したコミット）に、同じ 32 本を流した。DDL のままの厳密な数字。NOT NULL を外した診断版は 24 / 8。内訳と原因は [docs/e2e-baseline.md](docs/e2e-baseline.md) |
 | 2026-10-10 | Funadansu | 0 | 32 | フェーズ0の 6.3。runn のシナリオ 32 本（operator 11、access-control 7、catalog 7、catalog-update 4、notification 1、book-manage 2）をすべて RED。接続先は proxy（127.0.0.1:8787、その背後に Go を 8080）、DB は PostgreSQL 16 の `funadansu`。内訳は各単位の「旧 E2E の状況」 |
 
 ## リリース
