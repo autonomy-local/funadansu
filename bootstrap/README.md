@@ -52,6 +52,27 @@ test/api/run.sh         # Go のサービス（8080）と proxy（8787）を起�
 - シナリオは、テストデータを、固定の ID（`900000001`）で入れて、最後に消します。
 - runn は `flake.nix` の開発シェルで入れ、版は `flake.lock` の nixpkgs で固定します。
 
+#### 接続先を URL で切り替える
+
+同じシナリオを、ローカルの起動済みのサービスや、デプロイされた環境に向けて流せます。環境変数で指定した側は、`run.sh` が起動せず、その URL に向けます。
+
+| 変数 | 既定 | 意味 |
+| --- | --- | --- |
+| `FUNADANSU_TEST_GO_URL` | 起動する（`http://127.0.0.1:8080`） | Go のサービスの URL。指定すると起動しない |
+| `FUNADANSU_TEST_PROXY_URL` | 起動する（`http://127.0.0.1:8787`） | proxy の URL。指定すると起動しない |
+| `FUNADANSU_TEST_TOKEN` | 起動時は乱数の鍵で作る | proxy を外に向けるときに必須。その proxy と同じ鍵で署名した JWT |
+| `FUNADANSU_DATABASE_URL` | `db-start` の localhost | テストデータを入れる DB。Go が読む DB と同じものを指す |
+
+```sh
+# ローカルの Go と、デプロイされた proxy に向けて流す（JWT は、その proxy の鍵で作ったもの）
+FUNADANSU_TEST_PROXY_URL=https://proxy.example.com \
+  FUNADANSU_TEST_TOKEN='eyJ…' \
+  test/api/run.sh
+```
+
+- Go を外に向けるときは、`FUNADANSU_TEST_GO_URL` の Go が読む DB を `FUNADANSU_DATABASE_URL` で指定します。テストデータは、この DB に直接入れるためです。
+- 直接 `runn` で流すときは、`runn run "test/api/bootstrap/*.yml" --runner "go:URL" --runner "proxy:URL" --runner "db:DSN"` のように、`--runner` で同じ名前の接続先を上書きできます。
+
 ## コンテナイメージ（Nix）
 
 `nix build` で、Go のバイナリと、コンテナのイメージ（tar.gz）を作ります。レジストリへの push は、フェーズ0の 5.3 で扱います。
