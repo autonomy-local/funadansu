@@ -29,6 +29,15 @@
 | D-006 | operator | jest.mock に依る旧 E2E（E2E から外す） | 要確認 | 方針決定済み（単体テストへ） |
 | D-007 | operator | catalog のスタブに依る旧 E2E（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。スタブの仕様は docs/legacy-catalog-stub.md） |
 | D-008 | proxy | 下流のスタブに依る旧 E2E（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。スタブ確認後に、残りを決める） |
+| D-009 | access-control | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-010 | catalog | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-011 | notification | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-012 | identity-verify | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-013 | certificate | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-014 | binary | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-015 | ctoken | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-016 | book-manage | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
+| D-017 | book-operate | 下流のスタブ・モックに依る旧試験（E2E から外す） | 要確認 | 方針決定済み（単体テストへ。一覧は docs/legacy-unit-test-inventory.md） |
 
 ## 項目
 
@@ -141,6 +150,132 @@
 | 種別 | 要確認 |
 | 理由 | proxy の試験は中継の結果を見るため、下流が実物でないと意味がない。下流の実物（catalog など）は、この移行の時点ではまだ Funadansu に無い。スタブに依る試験を E2E に残すと、中身を変えることになるため（AGENTS.md の互換性） |
 | 影響 | proxy の E2E は、いまは 0 本。下流に依らず、proxy 自身の検査（認証の拒否、入力の検査など）だけで完結する試験を、後で見つけて E2E に残す（[docs/units/proxy.md](units/proxy.md)）。単体テストで置き換えるまでは、中継の経路は検証されない |
+| 関連 | なし（Issue は未起票） |
+
+### D-009 旧 E2E のスタブ・モックに依る試験（access-control、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | access-control |
+| 対象 | pxr-access-control-manage-service、pxr-access-control-service（合わせて 321 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験はスタブで catalog、operator、block-proxy などの応答を決める |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 184 件（スタブ・モックに依る）。候補 137 件は未確認 |
+| 関連 | なし（Issue は未起票） |
+
+### D-010 旧 E2E のスタブ・モックに依る試験（catalog、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | catalog |
+| 対象 | pxr-catalog-service、pxr-catalog-update-service（合わせて 2,084 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験は、catalog の DB と外部の API を、スタブやモックに差し替えて応答を決める |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 1,214 件（スタブ・モックに依る）。候補 870 件は未確認 |
+| 関連 | なし（Issue は未起票） |
+
+### D-011 旧 E2E のスタブ・モックに依る試験（notification、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | notification |
+| 対象 | pxr-notification-service（86 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験は、通知の送信先の API を、スタブに差し替える |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 55 件（スタブ・モックに依る）。候補 31 件は未確認 |
+| 関連 | なし（Issue は未起票） |
+
+### D-012 旧 E2E のスタブ・モックに依る試験（identity-verify、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | identity-verify |
+| 対象 | pxr-identity-verificate-service（177 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験は、本人確認の外部の応答を、スタブに差し替える |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 177 件すべて（スタブ・モックに依る） |
+| 関連 | なし（Issue は未起票） |
+
+### D-013 旧 E2E のスタブ・モックに依る試験（certificate、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | certificate |
+| 対象 | pxr-certification-authority-service、pxr-certificate-manage-service（合わせて 256 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験は、証明書の発行と検証の外部の応答を、スタブに差し替える |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 256 件すべて（スタブ・モックに依る） |
+| 関連 | なし（Issue は未起票） |
+
+### D-014 旧 E2E のスタブ・モックに依る試験（binary、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | binary |
+| 対象 | pxr-binary-manage-service（127 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験は、バイナリの保存先を、スタブに差し替える |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 127 件すべて（スタブ・モックに依る） |
+| 関連 | なし（Issue は未起票） |
+
+### D-015 旧 E2E のスタブ・モックに依る試験（ctoken、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | ctoken |
+| 対象 | pxr-ctoken-ledger-service、pxr-local-ctoken-service（合わせて 442 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験は、台帳の下流の応答を、スタブに差し替える |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 442 件すべて（スタブ・モックに依る） |
+| 関連 | なし（Issue は未起票） |
+
+### D-016 旧 E2E のスタブ・モックに依る試験（book-manage、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | book-manage |
+| 対象 | pxr-book-manage-service（2,785 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験は、データ通帳の下流（catalog、operator など）を、スタブに差し替える |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 1,920 件（スタブ・モックに依る）。候補 4 件は未確認 |
+| 関連 | なし（Issue は未起票） |
+
+### D-017 旧 E2E のスタブ・モックに依る試験（book-operate、E2E から外す）
+
+| 項目 | 内容 |
+| --- | --- |
+| 単位 | book-operate |
+| 対象 | pxr-book-operate-service（1,677 件） |
+| 仕様 | 旧 OpenAPI は `openapi/legacy/` の該当ファイル。試験の一覧は [docs/legacy-unit-test-inventory.md](legacy-unit-test-inventory.md) |
+| 元の実装 | 試験は、旧試験は、データ通帳の操作の下流を、スタブに差し替える |
+| Funadansu | E2E（runn）には入れない。スタブが返していた応答の形は、Go 側の単体テストに写す |
+| 種別 | 要確認 |
+| 理由 | 下流を差し替えた結果を見る試験は、E2E で確かめる中身と変わるため（AGENTS.md の互換性） |
+| 影響 | 単体テストに置き換えるまで、この件数の経路は検証されない。内訳：単体テストへ 1,677 件すべて（スタブ・モックに依る） |
 | 関連 | なし（Issue は未起票） |
 
 <!--
