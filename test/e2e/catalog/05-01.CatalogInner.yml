@@ -1,0 +1,622 @@
+desc: "旧 catalog の試験（05-01.CatalogInner.spec.ts）。元のテスト：https://github.com/Personal-Data-Linkage-Module/pxr-catalog-service/blob/14a647d0e01247844a86442b136ebde6a0f1cef3/src/tests/05-01.CatalogInner.spec.ts。記録した要求と応答、および試験が DB に流した SQL を、順番どおりに写した（スタブ・モックなし）"
+runners:
+  ct: __FUNADANSU_E2E_CT_URL__
+  db: __FUNADANSU_E2E_CT_DB__
+steps:
+  - desc: "前提：試験の DB を空にする（試験の間で状態を持ち越さないため。旧試験の DB の初期状態に当たる）"
+    db:
+      query: |
+        TRUNCATE pxr_catalog.catalog_update_set, pxr_catalog.catalog_item_attribute, pxr_catalog.catalog, pxr_catalog.catalog_item, pxr_catalog.catalog_relationship, pxr_catalog.catalog_code_scope, pxr_catalog.cmatrix_index, pxr_catalog.item_template, pxr_catalog.ns, pxr_catalog.property_candidate, pxr_catalog.template_code, pxr_catalog.template_property, pxr_catalog.update_set, pxr_catalog.attribute_update_set, pxr_catalog.ns_update_set CASCADE
+  - desc: "試験の DB 準備（initialData.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- 対象テーブルのデータをすべて削除
+        DELETE FROM pxr_catalog.attribute_update_set;
+        DELETE FROM pxr_catalog.catalog_update_set;
+        DELETE FROM pxr_catalog.ns_update_set;
+        DELETE FROM pxr_catalog.update_set;
+        DELETE FROM pxr_catalog.catalog_code_scope;
+        DELETE FROM pxr_catalog.catalog_relationship;
+        DELETE FROM pxr_catalog.catalog_item_attribute;
+        DELETE FROM pxr_catalog.cmatrix_index;
+        DELETE FROM pxr_catalog.property_candidate;
+        DELETE FROM pxr_catalog.template_code;
+        DELETE FROM pxr_catalog.template_property;
+        DELETE FROM pxr_catalog.item_template;
+        DELETE FROM pxr_catalog.catalog_item;
+        DELETE FROM pxr_catalog.catalog;
+        DELETE FROM pxr_catalog.ns;
+        
+        -- 対象テーブルのシーケンスを初期化
+        SELECT SETVAL('pxr_catalog.catalog_update_set_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.ns_update_set_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.update_set_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.catalog_code_scope_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.catalog_relationship_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.catalog_item_attribute_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.cmatrix_index_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.property_candidate_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.template_code_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.template_property_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.item_template_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.catalog_item_id_seq', 1, false);
+        SELECT SETVAL('pxr_catalog.ns_id_seq', 1, false);
+  - desc: "試験の DB 準備（activate.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- アクティベート
+        INSERT INTO pxr_catalog.catalog
+        (
+        id, name, description, ext_name,
+        attributes, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        '8669de76-5843-4581-b61a-e73b642bf1e0',
+        'PXRカタログ',
+        '組織が運営するPLR基盤が提供するデータカタログです。',
+        'test-org',
+        NULL, false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+  - desc: "試験の DB 準備（catalogCodeScope.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        
+        -- カタログコード範囲にすべて削除
+        DELETE FROM pxr_catalog.catalog_code_scope;
+        SELECT SETVAL('pxr_catalog.catalog_code_scope_id_seq', 1, false);
+        
+        -- カタログコード範囲にデータを追加
+        INSERT INTO pxr_catalog.catalog_code_scope
+        (
+        type, start_code, end_code, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'model',
+        1,
+        10000,
+        false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.catalog_code_scope
+        (
+        type, start_code, end_code, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'built_in',
+        10001,
+        1000000,
+        false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.catalog_code_scope
+        (
+        type, start_code, end_code, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'ext',
+        1000001,
+        10000000,
+        false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+  - desc: "試験の DB 準備（nameSpace.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- ネームスペースを全て削除
+        DELETE FROM pxr_catalog.ns;
+        SELECT SETVAL('pxr_catalog.ns_id_seq', 1, false);
+        
+        -- ネームスペースを追加
+        -- 基本データ用
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'model', 'catalog/model/unit-test', 'ユニットテスト用(model)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'model', 'catalog/model/cmatrix/unit-test', 'ユニットテスト用(cmatrix-model)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'built_in', 'catalog/built_in/unit-test', 'ユニットテスト用(built_in)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'built_in', 'catalog/built_in/cmatrix/unit-test', 'ユニットテスト用(cmatrix-built_in)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'ext', 'catalog/ext/unit-test', 'ユニットテスト用(ext)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'ext', 'catalog/ext/cmatrix/unit-test', 'ユニットテスト用(cmatrix-ext)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+        INSERT INTO pxr_catalog.ns
+        (
+        type, name, description,
+        is_disabled, attributes,
+        created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        'ext', 'catalog/ext/test-org/unit-test', 'ユニットテスト用(extname-ext)',
+        false, null,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+  - desc: "試験の DB 操作（SQL）"
+    db:
+      query: |
+        
+        DELETE FROM pxr_catalog.catalog
+  - desc: "1. 内部クラス取得(/inner/:code/:name) 異常 前提：未アクティベート"
+    ct:
+      "/catalog/inner/1/ValueInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 401 && current.res.body == fromJSON(\"{\\\"status\\\":401,\\\"message\\\":\\\"アクティベートされていません\\\"}\")"
+  - desc: "試験の DB 準備（activate.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- アクティベート
+        INSERT INTO pxr_catalog.catalog
+        (
+        id, name, description, ext_name,
+        attributes, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        '8669de76-5843-4581-b61a-e73b642bf1e0',
+        'PXRカタログ',
+        '組織が運営するPLR基盤が提供するデータカタログです。',
+        'test-org',
+        NULL, false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+  - desc: "2. 内部クラス取得(/inner/:code/:name) 正常 前提：inner"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用の説明です。","_code":{"_value":1,"_ver":1},"inherit":null},"template":{"prop":[{"key":"value_inner","type":{"of":"inner","inner":"ValueInner","cmatrix":null,"candidate":null},"description":"サンプルinner"}],"value":[{"key":"value_inner","value":[{"key":"inner_number","value":101}]}]},"inner":[{"name":"ValueInner","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"inner_number","type":{"of":"number","cmatrix":null,"format":null,"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":1,\\\"_ver\\\":1},\\\"value_inner\\\":{\\\"inner_number\\\":101}},\\\"prop\\\":[{\\\"key\\\":\\\"value_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"ValueInner\\\",\\\"cmatrix\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルinner\\\",\\\"isInherit\\\":false}],\\\"value\\\":[{\\\"key\\\":\\\"value_inner\\\",\\\"value\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"value\\\":101}]}],\\\"attribute\\\":null}\")"
+  - desc: "3. 内部クラス取得(/inner/:code/:name) 正常 前提：inner"
+    ct:
+      "/catalog/inner/1/ValueInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"ValueInner\\\"}}\")"
+  - desc: "4. 内部クラス取得(/inner/:code/:name) 正常 前提：inner[]"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用の説明です。","_code":{"_value":2,"_ver":1},"inherit":null},"template":{"prop":[{"key":"value_inner_array","type":{"of":"inner[]","inner":"ValueInnerArray","cmatrix":null,"candidate":null},"description":"サンプルinner[]"}],"value":[{"key":"value_inner","value":[{"key":"inner_number","value":101}]},{"key":"value_inner","value":[{"key":"inner_number","value":102}]}]},"inner":[{"name":"ValueInnerArray","description":"サンプルinner[]です。","template":{"inherit":null,"prop":[{"key":"inner_number","type":{"of":"number","cmatrix":null,"format":null,"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":2,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":2,\\\"_ver\\\":1},\\\"value_inner_array\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"value_inner_array\\\",\\\"type\\\":{\\\"of\\\":\\\"inner[]\\\",\\\"inner\\\":\\\"ValueInnerArray\\\",\\\"cmatrix\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルinner[]\\\",\\\"isInherit\\\":false}],\\\"value\\\":[{\\\"key\\\":\\\"value_inner\\\",\\\"value\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"value\\\":101}]},{\\\"key\\\":\\\"value_inner\\\",\\\"value\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"value\\\":102}]}],\\\"attribute\\\":null}\")"
+  - desc: "5. 内部クラス取得(/inner/:code/:name) 正常 前提：inner[]"
+    ct:
+      "/catalog/inner/2/ValueInnerArray":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":2,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"ValueInnerArray\\\"}}\")"
+  - desc: "6. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用の説明です。","_code":{"_value":3,"_ver":1},"inherit":{"_value":1,"_ver":1}},"template":{"prop":[{"key":"inherit_inner","type":{"of":"inner","inner":"InheritInner","cmatrix":null,"candidate":null},"description":"継承サンプルinner"}],"value":null},"inner":[{"name":"InheritInner","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"inner_number","type":{"of":"number","cmatrix":null,"format":null,"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":3,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":1,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":3,\\\"_ver\\\":1},\\\"inherit_inner\\\":null,\\\"value_inner\\\":{\\\"inner_number\\\":101}},\\\"prop\\\":[{\\\"key\\\":\\\"inherit_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"InheritInner\\\",\\\"cmatrix\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"継承サンプルinner\\\",\\\"isInherit\\\":false},{\\\"key\\\":\\\"value_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"ValueInner\\\",\\\"cmatrix\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルinner\\\",\\\"isInherit\\\":true}],\\\"value\\\":[{\\\"key\\\":\\\"value_inner\\\",\\\"value\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"value\\\":101}]}],\\\"attribute\\\":null}\")"
+  - desc: "7. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ"
+    ct:
+      "/catalog/inner/3/InheritInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":3,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":1,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"InheritInner\\\"}}\")"
+  - desc: "8. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(プロパティなし)"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":null,"_code":{"_value":4,"_ver":1},"inherit":null},"template":null,"inner":null,"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":4,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":null},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":4,\\\"_ver\\\":1}},\\\"prop\\\":null,\\\"value\\\":null,\\\"attribute\\\":null}\")"
+  - desc: "9. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(プロパティなし)"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用の説明です。","_code":{"_value":5,"_ver":1},"inherit":{"_value":4,"_ver":1}},"template":{"prop":[{"key":"inherit_inner","type":{"of":"inner","inner":"InheritInner","cmatrix":null,"candidate":null},"description":"継承サンプルinner"}],"value":null},"inner":[{"name":"InheritInner","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"inner_number","type":{"of":"number","cmatrix":null,"format":null,"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":5,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":4,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":5,\\\"_ver\\\":1},\\\"inherit_inner\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inherit_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"InheritInner\\\",\\\"cmatrix\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"継承サンプルinner\\\",\\\"isInherit\\\":false}],\\\"value\\\":null,\\\"attribute\\\":null}\")"
+  - desc: "10. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(プロパティなし)"
+    ct:
+      "/catalog/inner/5/InheritInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":5,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":4,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"InheritInner\\\"}}\")"
+  - desc: "11. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(プロパティなし)"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用の説明です。","_code":{"_value":6,"_ver":1},"inherit":null},"template":{"prop":null,"value":[{"key":"test","value":100}]},"inner":null,"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":6,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":6,\\\"_ver\\\":1}},\\\"prop\\\":null,\\\"value\\\":[{\\\"key\\\":\\\"test\\\",\\\"value\\\":100}],\\\"attribute\\\":null}\")"
+  - desc: "12. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(プロパティなし)"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用の説明です。","_code":{"_value":7,"_ver":1},"inherit":{"_value":6,"_ver":1}},"template":{"prop":[{"key":"inherit_inner","type":{"of":"inner","inner":"InheritInner","cmatrix":null,"candidate":null},"description":"継承サンプルinner"}],"value":null},"inner":[{"name":"InheritInner","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"inner_number","type":{"of":"number","cmatrix":null,"format":null,"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":7,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":6,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":7,\\\"_ver\\\":1},\\\"inherit_inner\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inherit_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"InheritInner\\\",\\\"cmatrix\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"継承サンプルinner\\\",\\\"isInherit\\\":false}],\\\"value\\\":[{\\\"key\\\":\\\"test\\\",\\\"value\\\":100}],\\\"attribute\\\":null}\")"
+  - desc: "13. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(プロパティなし)"
+    ct:
+      "/catalog/inner/7/InheritInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":7,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":6,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"InheritInner\\\"}}\")"
+  - desc: "14. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(存在しない型)"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用の説明です。","_code":{"_value":8,"_ver":1},"inherit":null},"template":{"prop":[{"key":"property_number","type":{"of":"number","cmatrix":null,"format":null,"unit":null,"candidate":null},"description":"サンプルnumber"}],"value":[{"key":"test","value":100}]},"inner":null,"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":8,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":8,\\\"_ver\\\":1},\\\"property_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"property_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"value\\\":[{\\\"key\\\":\\\"test\\\",\\\"value\\\":100}],\\\"attribute\\\":null}\")"
+  - desc: "15. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(存在しない型)"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用の説明です。","_code":{"_value":9,"_ver":1},"inherit":{"_value":8,"_ver":1}},"template":{"prop":[{"key":"inherit_inner","type":{"of":"inner","inner":"InheritInner","cmatrix":null,"candidate":null},"description":"継承サンプルinner"}],"value":null},"inner":[{"name":"InheritInner","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"inner_number","type":{"of":"number","cmatrix":null,"format":null,"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":9,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":8,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":9,\\\"_ver\\\":1},\\\"inherit_inner\\\":null,\\\"property_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inherit_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"InheritInner\\\",\\\"cmatrix\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"継承サンプルinner\\\",\\\"isInherit\\\":false},{\\\"key\\\":\\\"property_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":true}],\\\"value\\\":[{\\\"key\\\":\\\"test\\\",\\\"value\\\":100}],\\\"attribute\\\":null}\")"
+  - desc: "16. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ(存在しない型)"
+    ct:
+      "/catalog/inner/9/InheritInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":9,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":8,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"InheritInner\\\"}}\")"
+  - desc: "17. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ, Cmatrix"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/cmatrix/unit-test","name":"個人識別子列","description":"CMatrixの個人識別子列の定義です。","_code":{"_value":11,"_ver":null},"inherit":null},"template":{"prop":[{"key":"inherit_inner","type":{"of":"inner","inner":"@value","cmatrix":{"index":"1_1","reserved":true},"candidate":null},"description":"継承サンプルinner"}],"value":null},"inner":[{"name":"@value","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"@value","type":{"of":"string","cmatrix":{"index":"1_1","reserved":true},"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/cmatrix/unit-test\\\",\\\"name\\\":\\\"個人識別子列\\\",\\\"_code\\\":{\\\"_value\\\":11,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"CMatrixの個人識別子列の定義です。\\\"},\\\"template\\\":{\\\"_code\\\":{\\\"_value\\\":11,\\\"_ver\\\":1},\\\"index\\\":\\\"1_1\\\",\\\"inherit_inner\\\":{\\\"index\\\":\\\"1_1\\\",\\\"value\\\":null},\\\"value\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inherit_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"@value\\\",\\\"cmatrix\\\":{\\\"index\\\":\\\"1_1\\\",\\\"reserved\\\":true},\\\"candidate\\\":null},\\\"description\\\":\\\"継承サンプルinner\\\",\\\"isInherit\\\":false}],\\\"value\\\":null,\\\"attribute\\\":null}\")"
+  - desc: "18. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ, Cmatrix"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/cmatrix/unit-test","name":"生年月日列","description":"CMatrixの生年月日列の定義です。","_code":{"_value":12,"_ver":null},"inherit":{"_value":11,"_ver":1}},"template":{"prop":[{"key":"@value","type":{"of":"string","cmatrix":{"index":"1_2","reserved":true},"format":{"_value":5,"_ver":1},"unit":null,"candidate":null}},{"key":"inherit_inner","type":{"of":"inner","inner":"@value","cmatrix":{"index":"1_1","reserved":true},"candidate":null},"description":"継承サンプルinner"},{"key":"inherit_inner","type":{"of":"inner","inner":"@value","cmatrix":{"index":"1_2","reserved":true},"candidate":null},"description":"継承サンプルinner"}],"value":null},"inner":[{"name":"@value","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"@value","type":{"of":"string","cmatrix":{"index":"1_1","reserved":true},"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null},{"name":"@value","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"@value","type":{"of":"string","cmatrix":{"index":"1_2","reserved":true},"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/cmatrix/unit-test\\\",\\\"name\\\":\\\"生年月日列\\\",\\\"_code\\\":{\\\"_value\\\":12,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":11,\\\"_ver\\\":1},\\\"description\\\":\\\"CMatrixの生年月日列の定義です。\\\"},\\\"template\\\":{\\\"@value\\\":{\\\"index\\\":\\\"1_2\\\",\\\"value\\\":null},\\\"_code\\\":{\\\"_value\\\":12,\\\"_ver\\\":1},\\\"index\\\":\\\"1_2\\\",\\\"inherit_inner\\\":{\\\"index\\\":\\\"1_2\\\",\\\"value\\\":null},\\\"value\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"@value\\\",\\\"type\\\":{\\\"of\\\":\\\"string\\\",\\\"cmatrix\\\":{\\\"index\\\":\\\"1_2\\\",\\\"reserved\\\":true},\\\"format\\\":{\\\"_value\\\":5,\\\"_ver\\\":1},\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":null,\\\"isInherit\\\":false},{\\\"key\\\":\\\"inherit_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"@value\\\",\\\"cmatrix\\\":{\\\"index\\\":\\\"1_2\\\",\\\"reserved\\\":true},\\\"candidate\\\":null},\\\"description\\\":\\\"継承サンプルinner\\\",\\\"isInherit\\\":false}],\\\"value\\\":null,\\\"attribute\\\":null}\")"
+  - desc: "試験の DB 操作（SQL）"
+    db:
+      query: |
+        
+        UPDATE pxr_catalog.catalog_item
+        SET response = null
+        WHERE code = 12
+        ;
+  - desc: "19. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ, Cmatrix"
+    ct:
+      "/catalog/inner/12/@value":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/cmatrix/unit-test\\\",\\\"name\\\":\\\"生年月日列\\\",\\\"_code\\\":{\\\"_value\\\":12,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":11,\\\"_ver\\\":1},\\\"description\\\":\\\"CMatrixの生年月日列の定義です。\\\"},\\\"template\\\":{\\\"@value\\\":{\\\"index\\\":\\\"1_1\\\",\\\"value\\\":null},\\\"index\\\":\\\"1_2\\\",\\\"value\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"@value\\\",\\\"type\\\":{\\\"of\\\":\\\"string\\\",\\\"cmatrix\\\":{\\\"index\\\":\\\"1_1\\\",\\\"reserved\\\":true},\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"@value\\\"}}\")"
+  - desc: "20. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ, Cmatrix以外"
+    ct:
+      "/catalog/model":
+        post:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "content-type": "application/json"
+            "connection": "close"
+          body:
+            application/json: {"catalogItem":{"ns":"catalog/model/unit-test","name":"ユニットテスト","description":"ユニットテスト用説明","_code":{"_value":13,"_ver":null},"inherit":{"_value":12,"_ver":1}},"template":{"prop":[{"key":"@value","type":{"of":"string","cmatrix":{"index":"1_2","reserved":true},"format":{"_value":5,"_ver":1},"unit":null,"candidate":null}},{"key":"inherit_inner","type":{"of":"inner","inner":"@value","cmatrix":{"index":"1_1","reserved":true},"candidate":null},"description":"継承サンプルinner"}],"value":null},"inner":[{"name":"@value","description":"サンプルinnerです。","template":{"inherit":null,"prop":[{"key":"@value","type":{"of":"string","cmatrix":{"index":"1_1","reserved":true},"unit":null,"candidate":null},"description":"サンプルnumber"}]},"inner":null}],"attribute":null}
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":13,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":12,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用説明\\\"},\\\"template\\\":{\\\"@value\\\":{\\\"index\\\":\\\"1_2\\\",\\\"value\\\":null},\\\"_code\\\":{\\\"_value\\\":13,\\\"_ver\\\":1},\\\"inherit_inner\\\":{\\\"index\\\":\\\"1_1\\\",\\\"value\\\":null}},\\\"prop\\\":[{\\\"key\\\":\\\"@value\\\",\\\"type\\\":{\\\"of\\\":\\\"string\\\",\\\"cmatrix\\\":{\\\"index\\\":\\\"1_2\\\",\\\"reserved\\\":true},\\\"format\\\":{\\\"_value\\\":5,\\\"_ver\\\":1},\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":null,\\\"isInherit\\\":false},{\\\"key\\\":\\\"inherit_inner\\\",\\\"type\\\":{\\\"of\\\":\\\"inner\\\",\\\"inner\\\":\\\"@value\\\",\\\"cmatrix\\\":{\\\"index\\\":\\\"1_1\\\",\\\"reserved\\\":true},\\\"candidate\\\":null},\\\"description\\\":\\\"継承サンプルinner\\\",\\\"isInherit\\\":false}],\\\"value\\\":null,\\\"attribute\\\":null}\")"
+  - desc: "試験の DB 操作（SQL）"
+    db:
+      query: |
+        
+        UPDATE pxr_catalog.catalog_item
+        SET response = null
+        WHERE code = 13
+        ;
+  - desc: "21. 内部クラス取得(/inner/:code/:name) 正常 前提：継承カタログ, Cmatrix以外"
+    ct:
+      "/catalog/inner/13/@value":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":13,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":12,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用説明\\\"},\\\"template\\\":{\\\"@value\\\":{\\\"index\\\":\\\"1_1\\\",\\\"value\\\":null}},\\\"prop\\\":[{\\\"key\\\":\\\"@value\\\",\\\"type\\\":{\\\"of\\\":\\\"string\\\",\\\"cmatrix\\\":{\\\"index\\\":\\\"1_1\\\",\\\"reserved\\\":true},\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"@value\\\"}}\")"
+  - desc: "22. 内部クラス取得(/inner/:code/:name) 異常 前提：存在しないカタログ(コード違い)"
+    ct:
+      "/catalog/inner/99999/ValueInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 404 && current.res.body == fromJSON(\"{\\\"status\\\":404,\\\"message\\\":\\\"対象カタログがありません\\\"}\")"
+  - desc: "23. 内部クラス取得(/inner/:code/:name) 異常 前提：存在しないカタログ(内部クラス名違い、item_template取得0件)"
+    ct:
+      "/catalog/inner/1/XXXXX":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 404 && current.res.body == fromJSON(\"{\\\"status\\\":404,\\\"message\\\":\\\"対象カタログがありません\\\"}\")"
+  - desc: "試験の DB 操作（SQL）"
+    db:
+      query: |
+        
+        DELETE FROM pxr_catalog.catalog
+  - desc: "24. 内部クラス取得(/inner/:code/:version/:name) 異常 前提：未アクティベート"
+    ct:
+      "/catalog/inner/1/1/ValueInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 401 && current.res.body == fromJSON(\"{\\\"status\\\":401,\\\"message\\\":\\\"アクティベートされていません\\\"}\")"
+  - desc: "試験の DB 準備（activate.sql）"
+    db:
+      query: |
+        /** Copyright 2022 NEC Corporation
+        Released under the MIT license.
+        https://opensource.org/licenses/mit-license.php
+        */
+        -- アクティベート
+        INSERT INTO pxr_catalog.catalog
+        (
+        id, name, description, ext_name,
+        attributes, is_disabled, created_by, created_at, updated_by, updated_at
+        )
+        VALUES
+        (
+        '8669de76-5843-4581-b61a-e73b642bf1e0',
+        'PXRカタログ',
+        '組織が運営するPLR基盤が提供するデータカタログです。',
+        'test-org',
+        NULL, false,
+        'pxr_user', NOW(), 'pxr_user', NOW()
+        )
+        ;
+  - desc: "25. 内部クラス取得(/inner/:code/:version/:name) 正常 前提：inner"
+    ct:
+      "/catalog/inner/1/1/ValueInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":1,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"ValueInner\\\"}}\")"
+  - desc: "26. 内部クラス取得(/inner/:code/:version/:name) 正常 前提：inner[]"
+    ct:
+      "/catalog/inner/2/1/ValueInnerArray":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":2,\\\"_ver\\\":1},\\\"inherit\\\":null,\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"ValueInnerArray\\\"}}\")"
+  - desc: "27. 内部クラス取得(/inner/:code/:version/:name) 正常 前提：継承カタログ"
+    ct:
+      "/catalog/inner/3/1/InheritInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":3,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":1,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"InheritInner\\\"}}\")"
+  - desc: "28. 内部クラス取得(/inner/:code/:version/:name) 正常 前提：継承カタログ(プロパティなし)"
+    ct:
+      "/catalog/inner/5/1/InheritInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":5,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":4,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"InheritInner\\\"}}\")"
+  - desc: "29. 内部クラス取得(/inner/:code/:version/:name) 正常 前提：継承カタログ(プロパティなし)"
+    ct:
+      "/catalog/inner/7/InheritInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":7,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":6,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"InheritInner\\\"}}\")"
+  - desc: "30. 内部クラス取得(/inner/:code/:version/:name) 正常 前提：継承カタログ(存在しない型)"
+    ct:
+      "/catalog/inner/9/1/InheritInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 200 && current.res.body == fromJSON(\"{\\\"catalogItem\\\":{\\\"ns\\\":\\\"catalog/model/unit-test\\\",\\\"name\\\":\\\"ユニットテスト\\\",\\\"_code\\\":{\\\"_value\\\":9,\\\"_ver\\\":1},\\\"inherit\\\":{\\\"_value\\\":8,\\\"_ver\\\":1},\\\"description\\\":\\\"ユニットテスト用の説明です。\\\"},\\\"template\\\":{\\\"inner_number\\\":null},\\\"prop\\\":[{\\\"key\\\":\\\"inner_number\\\",\\\"type\\\":{\\\"of\\\":\\\"number\\\",\\\"cmatrix\\\":null,\\\"format\\\":null,\\\"unit\\\":null,\\\"candidate\\\":null},\\\"description\\\":\\\"サンプルnumber\\\",\\\"isInherit\\\":false}],\\\"inner\\\":{\\\"name\\\":\\\"InheritInner\\\"}}\")"
+  - desc: "31. 内部クラス取得(/inner/:code/:version/:name) 異常 前提：存在しないカタログ(コード違い)"
+    ct:
+      "/catalog/inner/99999/1/ValueInner":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 404 && current.res.body == fromJSON(\"{\\\"status\\\":404,\\\"message\\\":\\\"対象カタログがありません\\\"}\")"
+  - desc: "32. 内部クラス取得(/inner/:code/:version/:name) 異常 前提：存在しないカタログ(内部クラス名違い)"
+    ct:
+      "/catalog/inner/1/1/XXXXX":
+        get:
+          headers:
+            "accept": "application/json"
+            "session": "{\"sessionId\":\"sessionId\",\"operatorId\":1,\"type\":3,\"loginId\":\"loginid\",\"name\":\"test-user\",\"mobilePhone\":\"0311112222\",\"auth\":{\"add\":true,\"update\":true,\"delete\":true},\"lastLoginAt\":\"2020-01-01T00:00:00.000+0900\",\"attributes\":{},\"roles\":[{\"_value\":1,\"_ver\":1}],\"block\":{\"_value\":1000110,\"_ver\":1},\"actor\":{\"_value\":1000001,\"_ver\":1}}"
+            "connection": "close"
+    test: "current.res.status == 404 && current.res.body == fromJSON(\"{\\\"status\\\":404,\\\"message\\\":\\\"対象カタログがありません\\\"}\")"

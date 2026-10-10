@@ -73,7 +73,7 @@
 
 ### pxr-catalog-service（単位：catalog）
 
-試験ファイル 27、試験 1444 件。単体テストへ 636 件、E2E の候補（未確認）808 件
+試験ファイル 27、試験 1444 件。単体テストへ 636 件、E2E（確認済み、GREEN、`test/e2e/catalog/`）7 ファイル 1144 件
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
@@ -86,24 +86,24 @@
 | `src/tests/03-02.CatalogName.dbError.spec.ts` | 3 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/03-03.CatalogName.dbError.spec.ts` | 1 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/03-04.CatalogName.dbError.spec.ts` | 1 | 単体テストへ（D-010） | jest.mock 1 件 |
-| `src/tests/04-01.Catalog.model.spec.ts` | 303 | 候補（未確認） | なし |
-| `src/tests/04-02.Catalog.built_in.spec.ts` | 229 | 候補（未確認） | なし |
-| `src/tests/04-03.Catalog.ext.spec.ts` | 229 | 候補（未確認） | なし |
+| `src/tests/04-01.Catalog.model.spec.ts` | 303 | E2E（確認済み、GREEN） | なし |
+| `src/tests/04-02.Catalog.built_in.spec.ts` | 229 | E2E（確認済み、GREEN） | なし |
+| `src/tests/04-03.Catalog.ext.spec.ts` | 229 | E2E（確認済み、GREEN） | なし |
 | `src/tests/04-04.Catalog.model.error.spec.ts` | 88 | 単体テストへ（D-010） | スタブ: StubOperatorServer |
 | `src/tests/04-05.Catalog.dbError.spec.ts` | 15 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/04-06.Catalog.dbError.spec.ts` | 3 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/04-07.Catalog.dbError.spec.ts` | 15 | 単体テストへ（D-010） | jest.mock 1 件 |
 | `src/tests/04-08.Catalog.dbError.spec.ts` | 12 | 単体テストへ（D-010） | jest.mock 1 件 |
-| `src/tests/04-09.Catalog.bulk.spec.ts` | 1 | 候補（未確認） | なし |
-| `src/tests/05-01.CatalogInner.spec.ts` | 20 | 候補（未確認） | なし |
+| `src/tests/04-09.Catalog.bulk.spec.ts` | 1 | E2E（確認済み、GREEN。繰り返しで 337 件） | なし |
+| `src/tests/05-01.CatalogInner.spec.ts` | 20 | E2E（確認済み、GREEN） | なし |
 | `src/tests/06-01.CatalogFullText.spec.ts` | 21 | 単体テストへ（D-010） | スタブ: StubCloudSearchServer, StubOperatorServer; jest.mock 1 件 |
 | `src/tests/07-01.UpdateSet.spec.ts` | 65 | 単体テストへ（D-010） | スタブ: StubOperatorServer |
 | `src/tests/07-02.UpdateSet.spec.ts` | 72 | 単体テストへ（D-010） | スタブ: StubOperatorServer |
 | `src/tests/07-03.UpdateSet.dbError.spec.ts` | 8 | 単体テストへ（D-010） | jest.mock 3 件 |
 | `src/tests/07-04.UpdateSet.dbError.spec.ts` | 5 | 単体テストへ（D-010） | jest.mock 1 件 |
-| `src/tests/08-01.CatalogPublic.spec.ts` | 4 | 候補（未確認） | なし |
+| `src/tests/08-01.CatalogPublic.spec.ts` | 4 | E2E（確認済み、GREEN） | なし |
 | `src/tests/09-01.Attribute.spec.ts` | 31 | 単体テストへ（D-010） | スタブ: StubOperatorServer |
-| `src/tests/10-01.CatalogHistoryCode.spec.ts` | 22 | 候補（未確認） | なし |
+| `src/tests/10-01.CatalogHistoryCode.spec.ts` | 22 | E2E（確認済み、GREEN） | なし |
 
 ### pxr-catalog-update-service（単位：catalog）
 
