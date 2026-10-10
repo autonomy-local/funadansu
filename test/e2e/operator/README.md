@@ -12,8 +12,10 @@
 | `08-01.OperatorLogout.yml` | `08-01.OperatorLogout.spec.ts`（10 件） | 期限の日付で赤になる（D-004） |
 | `09-01.OperatorSession.yml` | `09-01.OperatorSession.spec.ts`（10 件） | 期限の日付で赤になる（D-004）。期限だけ 2030 にした診断版は全件 GREEN |
 | `10-01.PasswordReset.yml` | `10-01.PasswordReset.spec.ts` | 期限の日付で赤になる（D-004）。期限だけ 2030 にした診断版は GREEN。カタログのスタブ（3001）が必要 |
+| `14-01.RequestArrayValidator.yml` | `14-01.RequestArrayValidator.spec.ts`（10 件） | GREEN（DB に触る前に 400 を返すため、DB の初期化は省く） |
+| `15-01.IdentifyCode.yml` | `15-01.IdentifyCode.spec.ts`（5 件） | GREEN |
 
-残りの operator のテストは、まだ書き換えていません（14-01、15-01、16-01、16-02）。
+残りの operator のテストは、まだ書き換えていません（16-01、16-02）。
 
 ## 動かす前に
 
@@ -23,8 +25,8 @@
 3. テストデータを入れる DB を用意します。旧 operator の `ormconfig.json` と同じ `pxr_pod`、ユーザー `pxr_operator_user` です。スキーマは `db/` の DDL から作ります（NOT NULL の差は D-005）。
 4. 接続先の DSN を環境変数で渡します。
    `export FUNADANSU_E2E_OPERATOR_DB='postgres://pxr_operator_user:<パスワード>@localhost:5432/pxr_pod?sslmode=disable'`
-5. 実行します（runn v1.11.1）。
-   `runn run test/e2e/operator/03-01.OperatorGetById.yml`
+5. 実行します（runn v1.11.1）。DSN はシナリオに書かず、`run.sh` が `__FUNADANSU_E2E_OPERATOR_DB__` を環境変数の値に置き換えた一時ファイルで流します（runn は runners の中で環境変数を展開しないため）。
+   `test/e2e/operator/run.sh`（引数でシナリオを絞れます）
 
 ## 注意
 
