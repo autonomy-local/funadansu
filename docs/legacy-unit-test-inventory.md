@@ -16,7 +16,7 @@
 | --- | --- | --- | --- | --- |
 | access-control | D-009 | 321 | 184 | 137 |
 | catalog | D-010 | 2,084 | 1,214 | 870 |
-| notification | D-011 | 86 | 55 | 31 |
+| notification | D-011 | 86 | 55 | 31（確認済み。E2E に入れた） |
 | identity-verify | D-012 | 177 | 177 | 0 |
 | certificate | D-013 | 256 | 256 | 0 |
 | binary | D-014 | 127 | 127 | 0 |
@@ -161,7 +161,7 @@
 
 ### pxr-notification-service（単位：notification）
 
-試験ファイル 8、試験 86 件。単体テストへ 55 件、E2E の候補（未確認）31 件
+試験ファイル 8、試験 86 件。単体テストへ 55 件、E2E（確認済み、GREEN、`test/e2e/notification/`）31 件
 
 | 試験ファイル | 件数 | 分類 | 依存 |
 | --- | --- | --- | --- |
@@ -172,7 +172,7 @@
 | `src/tests/Notification.list.spec.ts` | 13 | 単体テストへ（D-011） | スタブ: StubServer |
 | `src/tests/Notification.read.spec.ts` | 4 | 単体テストへ（D-011） | スタブ: StubServer |
 | `src/tests/Notification.transfer.spec.ts` | 5 | 単体テストへ（D-011） | スタブ: StubBookManageServer, StubServer |
-| `src/tests/Notification.validator.spec.ts` | 31 | 候補（未確認） | なし |
+| `src/tests/Notification.validator.spec.ts` | 31 | E2E（確認済み、GREEN） | なし |
 
 ### pxr-identity-verificate-service（単位：identity-verify）
 
