@@ -11,8 +11,9 @@
 | `07-01.OperatorOneTimeLogin.yml` | `07-01.OperatorOneTimeLogin.spec.ts`（12 件） | 2 件が赤（期限の日付。差分台帳 D-004） |
 | `08-01.OperatorLogout.yml` | `08-01.OperatorLogout.spec.ts`（10 件） | 期限の日付で赤になる（D-004） |
 | `09-01.OperatorSession.yml` | `09-01.OperatorSession.spec.ts`（10 件） | 期限の日付で赤になる（D-004）。期限だけ 2030 にした診断版は全件 GREEN |
+| `10-01.PasswordReset.yml` | `10-01.PasswordReset.spec.ts` | 期限の日付で赤になる（D-004）。期限だけ 2030 にした診断版は GREEN。カタログのスタブ（3001）が必要 |
 
-残りの operator のテストは、まだ書き換えていません（10-01、14-01、15-01、16-01、16-02）。
+残りの operator のテストは、まだ書き換えていません（14-01、15-01、16-01、16-02）。
 
 ## 動かす前に
 
