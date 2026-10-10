@@ -3,16 +3,34 @@
 #
 # 前提：nix develop の中で実行し、先に db-start で PostgreSQL を起動し、db-init で旧スキーマを作っておきます。
 # 接続先は FUNADANSU_DATABASE_URL で変えられます（既定は db-start の localhost）。
-# 使う経路：Go は 127.0.0.1:8080、proxy は 127.0.0.1:8787（シナリオの runners と合わせます）。
+# 既定では、Go は 127.0.0.1:8080、proxy は 127.0.0.1:8787 で、このスクリプトが一時的に起動します。
+# 接続先を変えるときは、次の URL を指定します。指定した側は起動せず、その URL に向けて流します。
+#   FUNADANSU_TEST_GO_URL     Go のサービス（例：http://127.0.0.1:8080）
+#   FUNADANSU_TEST_PROXY_URL  proxy（例：http://127.0.0.1:8787）
+# proxy を外に向けるときは、その proxy と同じ鍵で署名した JWT を FUNADANSU_TEST_TOKEN で渡します。
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$root"
 
 export FUNADANSU_DATABASE_URL="${FUNADANSU_DATABASE_URL:-postgres://postgres@localhost:5432/funadansu?sslmode=disable}"
-export FUNADANSU_JWT_KID="runn-$(node -e 'process.stdout.write(require("node:crypto").randomBytes(4).toString("hex"))')"
-export FUNADANSU_JWT_KEY="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
-export FUNADANSU_TEST_TOKEN="$(node test/api/token.mjs)"
+
+go_url="${FUNADANSU_TEST_GO_URL:-http://127.0.0.1:8080}"
+proxy_url="${FUNADANSU_TEST_PROXY_URL:-http://127.0.0.1:8787}"
+start_go=0
+start_proxy=0
+[ -z "${FUNADANSU_TEST_GO_URL:-}" ] && start_go=1
+[ -z "${FUNADANSU_TEST_PROXY_URL:-}" ] && start_proxy=1
+
+# 起動するときだけ、鍵を乱数で作る（鍵は残らない）。外の proxy では、渡された FUNADANSU_TEST_TOKEN を使う。
+if [ "$start_proxy" = 1 ]; then
+  export FUNADANSU_JWT_KID="runn-$(node -e 'process.stdout.write(require("node:crypto").randomBytes(4).toString("hex"))')"
+  export FUNADANSU_JWT_KEY="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
+  export FUNADANSU_TEST_TOKEN="$(node test/api/token.mjs)"
+elif [ -z "${FUNADANSU_TEST_TOKEN:-}" ]; then
+  echo "FUNADANSU_TEST_PROXY_URL を指定するときは、その proxy の鍵で署名した FUNADANSU_TEST_TOKEN が必要です" >&2
+  exit 1
+fi
 
 workdir="$(mktemp -d)"
 pids=()
@@ -25,24 +43,29 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Go のサービスを、ビルドしてから起動する（bootstrap/ の README と同じ設定）。
-(cd bootstrap && go build -o "$workdir/funadansu" ./cmd/funadansu)
-FUNADANSU_ADDR=127.0.0.1:8080 "$workdir/funadansu" >"$workdir/go.log" 2>&1 &
-pids+=("$!")
+if [ "$start_go" = 1 ]; then
+  # Go のサービスを、ビルドしてから起動する（bootstrap/ の README と同じ設定）。
+  (cd bootstrap && go build -o "$workdir/funadansu" ./cmd/funadansu)
+  FUNADANSU_ADDR=127.0.0.1:8080 "$workdir/funadansu" >"$workdir/go.log" 2>&1 &
+  pids+=("$!")
+fi
 
-# proxy（Bun）を起動する。依存は package-lock.json で固定する。
-(cd bootstrap/proxy && if [ ! -d node_modules ]; then npm ci --no-audit --no-fund; fi)
-(
-  cd bootstrap/proxy
-  FUNADANSU_UPSTREAM_URL=http://127.0.0.1:8080 \
-    FUNADANSU_PROXY_ADDR=127.0.0.1:8787 \
-    FUNADANSU_JWT_KEY="$FUNADANSU_JWT_KEY" \
-    FUNADANSU_JWT_KID="$FUNADANSU_JWT_KID" \
-    exec bun run src/entry/bun.ts
-) >"$workdir/proxy.log" 2>&1 &
-pids+=("$!")
+if [ "$start_proxy" = 1 ]; then
+  # proxy（Bun）を起動する。依存は package-lock.json で固定する。
+  # 上流は、接続先に指定された Go のサービス（既定は起動したもの）。
+  (cd bootstrap/proxy && if [ ! -d node_modules ]; then npm ci --no-audit --no-fund; fi)
+  (
+    cd bootstrap/proxy
+    FUNADANSU_UPSTREAM_URL="$go_url" \
+      FUNADANSU_PROXY_ADDR=127.0.0.1:8787 \
+      FUNADANSU_JWT_KEY="$FUNADANSU_JWT_KEY" \
+      FUNADANSU_JWT_KID="$FUNADANSU_JWT_KID" \
+      exec bun run src/entry/bun.ts
+  ) >"$workdir/proxy.log" 2>&1 &
+  pids+=("$!")
+fi
 
-# 両方が HTTP で応答するまで待つ（proxy は /healthz を公開しないため、応答の番号は見ない）。
+# 起動したものが HTTP で応答するまで待つ（proxy は /healthz を公開しないため、応答の番号は見ない）。
 # 起動に失敗したら、ログを出して止める。
 wait_for() {
   local url="$1" name="$2" i
@@ -53,12 +76,13 @@ wait_for() {
     sleep 0.5
   done
   echo "$name が起動しませんでした。ログ：" >&2
-  cat "$workdir/go.log" "$workdir/proxy.log" >&2
+  cat "$workdir/go.log" "$workdir/proxy.log" 2>/dev/null >&2
   return 1
 }
-wait_for http://127.0.0.1:8080/healthz go
-wait_for http://127.0.0.1:8787/healthz proxy
+[ "$start_go" = 1 ] && wait_for "$go_url/healthz" go
+[ "$start_proxy" = 1 ] && wait_for "$proxy_url/healthz" proxy
 
 # シナリオを順に実行する（テストデータを共有するため並列にしない）。
-# DB の接続先は、シナリオの既定より FUNADANSU_DATABASE_URL を優先する。
-runn run "test/api/bootstrap/*.yml" --concurrent off --runner "db:$FUNADANSU_DATABASE_URL"
+# 接続先は runners の既定より、この実行の URL を優先する。DB の接続先も同様（FUNADANSU_DATABASE_URL）。
+runn run "test/api/bootstrap/*.yml" --concurrent off \
+  --runner "go:$go_url" --runner "proxy:$proxy_url" --runner "db:$FUNADANSU_DATABASE_URL"
