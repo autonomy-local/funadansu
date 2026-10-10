@@ -1,0 +1,12 @@
+version: "2"
+# SQL が正本。生成物（store/*.go）は手で直しません。再生成は `sqlc generate`（bootstrap/ の中で実行）。
+sql:
+  - engine: "postgresql"
+    # 旧スキーマの DDL を、そのまま sqlc の型の元にする（db/ が正本）
+    schema: "../db/pxr_operator"
+    queries: "internal/operator/store/query.sql"
+    gen:
+      go:
+        package: "store"
+        out: "internal/operator/store"
+        sql_package: "database/sql"

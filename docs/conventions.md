@@ -67,6 +67,7 @@ DI コンテナは使いません。依存は**コンストラクタの引数**�
 - **依存の受け取り**：`New<型名>` の関数で、必要なものを引数に取ります。`init()` と、パッケージ変数に置く DB や設定の値は使いません。
 - **インターフェース**は、**使う側のパッケージ**に、使う分だけ定義します。作る側のパッケージでインターフェースを先に作りません。
 - **配線**は `cmd/funadansu/main.go` だけで行います。ほかのパッケージは、受け取った依存を使うだけで、どこから来たかを知りません。
+- **`store/`** は、同じ単位の中からだけ使います。`main` は単位の `NewStore(db)` で Store を作り、`store/` を直接 import しません。
 - **設定と接続**は `main` で一度だけ読み、開いた接続は `main` で閉じます（`defer`）。
 - **単位どうしの呼び出し**は、呼ぶ側のコンストラクタに、相手の関数を値として渡します。相手が「外に出す関数の一覧」（引き継ぎファイル）に無い関数は、渡しません。
 - **context** は、関数の最初の引数で受け渡します。
@@ -99,7 +100,7 @@ func NewService(store Store) *Service {
 pool := platform.OpenDB(cfg.DatabaseURL)
 defer pool.Close()
 
-operators := operator.NewService(store.New(pool))
+operators := operator.NewService(operator.NewStore(pool), logger)
 ```
 
 見本の置き場：`bootstrap/internal/platform/`、`bootstrap/internal/<単位>/service.go`、`bootstrap/cmd/funadansu/main.go`（bootstrap で作ります）。
@@ -241,7 +242,7 @@ steps:
 
 ```go
 // cmd/funadansu/main.go（配線はここだけ）
-operators := operator.NewService(store.New(pool))
+operators := operator.NewService(operator.NewStore(pool), logger)
 bookManage := bookmanage.NewService(operators.Find)
 ```
 
@@ -426,8 +427,8 @@ srv := &http.Server{
   - 比率は設定の `FUNADANSU_MEMORY_LIMIT_RATIO` で持ち、初期値は 0.9 です。メモリに関わる不具合が出たら下げます。
   - 割り当てのバイト数は設定の `FUNADANSU_MEMORY_LIMIT_BYTES` で明示します。VPS は PostgreSQL と同じ機械で動くため、機械全体のメモリを割り当てにしません。
   - 設定が無いときは、cgroup の上限（`memory.max`）を読みます。上限が無ければ、メモリの上限は設定しません。
-  - 環境変数 `GOMEMLIMIT` が既にあれば、それを優先し、アプリでは上書きしません。
-- **起動時の system ログ**：版と実行の設定を1行で出します。キーは `go_version`、`gomaxprocs`、`gomemlimit`（バイト数、または `off`）、`memory_source`（`config`、`cgroup`、`none` のどれか）です。
+  - 環境変数 `GOMEMLIMIT` が既にあれば、それを優先し、アプリでは上書きしません。このとき `memory_source` は `env` と書きます（Go が起動時に読んだ値をそのまま使うため。見本は `bootstrap/internal/platform/runtime.go`）。
+- **起動時の system ログ**：版と実行の設定を1行で出します。キーは `go_version`、`gomaxprocs`、`gomemlimit`（バイト数、または `off`）、`memory_source`（`env`、`config`、`cgroup`、`none` のどれか）です。
 - **設定の検証**：必須の値が無い、または形が不正なら、すぐに終了します。エラーには値を出さず、キーの名前だけを出します。
 - **待ち受け**：既定は `127.0.0.1` で待ち受けます（ADR 0007 の経路の制限）。Cloud Run では `FUNADANSU_ADDR` を `0.0.0.0:$PORT` と明示して設定します。
 - **終了**：`signal.NotifyContext` で SIGINT と SIGTERM を受け、`http.Server.Shutdown` に時限を付けます。時限は `FUNADANSU_SHUTDOWN_TIMEOUT` で持ち、初期値は 8 秒です（Cloud Run の猶予 10 秒に収めるため）。DB の接続は、サーバーを止めたあとに閉じます。
