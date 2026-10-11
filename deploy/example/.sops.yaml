@@ -1,0 +1,9 @@
+# 見本。運用者の公開鍵に置き換える（値は見本で、実在の鍵ではない）。
+# dev は age の鍵を 2 人以上が持つ。本番は Cloud KMS とオフラインの age の 2 つを宛先にする（ADR-0010）。
+creation_rules:
+  - path_regex: ^secrets/dev\.yaml$
+    age: age1example000000000000000000000000000000000000000000000000000
+  # 本番の宛先（Cloud KMS の鍵を作ってから足す）
+  # - path_regex: ^secrets/prod\.yaml$
+  #   gcp_kms: projects/<プロジェクト>/locations/<リージョン>/keyRings/<キーリング>/cryptoKeys/<鍵>
+  #   age: age1<オフラインの公開鍵>
