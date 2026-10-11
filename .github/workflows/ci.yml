@@ -1,0 +1,73 @@
+# CI（フェーズ0の 7.1）。Nix の開発シェルの中で、ローカルと同じ手順を流します。
+#
+# - check：Go のビルドとテスト、proxy（Hono）の型検査とテスト、Bootstrap の API のシナリオ。落ちたら CI は赤。
+# - legacy-e2e：旧基盤の E2E を Funadansu に向けて流し、通過数を出す。フェーズ0では全部 RED が正なので、
+#   このジョブは continue-on-error で、落ちても CI 全体は落とさない。
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: PostgreSQL と旧スキーマを用意する
+        run: nix develop --command bash -c 'db-start && db-init'
+
+      - name: Go のビルドとテスト（エンドポイントのテストを含む）
+        run: |
+          nix develop --command bash -c '
+            export GOTOOLCHAIN=local
+            cd bootstrap
+            go build ./...
+            FUNADANSU_DATABASE_URL="postgres://postgres@localhost:5432/funadansu?sslmode=disable" \
+              CGO_ENABLED=1 go test -race ./...
+          '
+
+      - name: proxy（Hono）の型検査とテスト
+        run: |
+          nix develop --command bash -c '
+            cd bootstrap/proxy
+            npm ci --no-audit --no-fund
+            npm run typecheck
+            npm test
+          '
+
+      - name: Bootstrap の API のシナリオ（runn）
+        run: nix develop --command bash -c 'export GOTOOLCHAIN=local && test/api/run.sh'
+
+  legacy-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: PostgreSQL と旧スキーマを用意する
+        run: nix develop --command bash -c 'db-start && db-init'
+
+      - name: 旧 E2E を Funadansu に向けて流す（通過数を結果の要約に出す）
+        run: nix develop --command bash -c 'export GOTOOLCHAIN=local && test/e2e/run-all.sh'
