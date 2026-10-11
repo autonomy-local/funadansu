@@ -24,7 +24,7 @@ Funadansu は、運用者が自ら運用することを前提にしています�
 | deploy.md | 最小のデプロイ：ローカルで CI（GitHub Actions と同じ `nix flake check` など）を通してから、`pulumi up`（Cloud Run・Workers）と `nixos-rebuild switch --target-host`（VPS）で反映する。切り戻しの手順 | 未着手 |
 | hardening.md | VPS（NixOS）の固め方：ファイアウォール、TLS、SSH、自動更新、ログの保存先 | 未着手 |
 | backup-restore.md | バックアップと復元：事業者の外への書き換えられないバックアップ、復元の訓練 | 未着手 |
-| secrets.md | 鍵の管理：sops と age の鍵、JWT の鍵の交換、漏えい時の入れ替え | 未着手 |
+| secrets.md | 鍵の管理：sops と age の鍵、JWT の鍵の交換、漏えい時の入れ替え | 初版（dev のダミーの鍵。Issue #18） |
 | upgrade.md | 更新の手順：リリースの署名の確かめ方、切り戻し | 未着手 |
 | incident.md | 事故のとき：初動（止める・保全・連絡）、関係機関への報告、利用者への告知 | 未着手 |
 
