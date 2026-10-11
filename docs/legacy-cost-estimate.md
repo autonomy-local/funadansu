@@ -19,7 +19,7 @@
 | Aurora PostgreSQL（インスタンス） | db.r6g.large × 1 台（書き込みのみ、Single-AZ 単価） | 228.49 |
 | Aurora（ストレージ） | 20GB | 2.40 |
 | Aurora（I/O） | 1 か月あたり 1,000 万回 | 2.40 |
-| 踏み台（EC2） | t3.micro × 1 台、gp3 8GB | 10.70 |
+| 開発・運用用の EC2（VPC 内、踏み台を兼ねる） | t3.micro × 1 台、gp3 8GB。ECR と Fargate の操作を行う | 10.70 |
 | 監視（Fargate、別の Pod 1 個） | Grafana・Prometheus・Fluentd を各 0.25 vCPU・0.5GB で 1 つの Pod に入れる。合計 0.75 vCPU・1.5GB は Fargate の刻みに合わせて 1 vCPU・2GB として計算 | 44.98 |
 | Amazon CloudSearch（検索インスタンス） | search.small × 1 台、730 時間 | 59.86 |
 | Amazon CloudSearch（インデックス） | 1 か月に 1GB を処理 | 0.98 |
@@ -46,7 +46,8 @@
 
 - データ転送（外向きの通信量）、CloudWatch などのログ、Aurora のバックアップ、Route 53、ACM
 - 図 1‑1 にある ECR（使用量が分からないため）
-- VPC エンドポイント（Fargate から ECR などへの接続に使う場合の費用）。図には無いため、含めていません
+- VPC エンドポイント。開発・運用用の EC2 が ECR を経由して Fargate を操作し、Fargate はイメージを NAT 経由で取る構成のため、入れていません（NAT のデータ処理は 10GB/月で見込んでいます）
+- ECR のイメージの保存容量（使用量が分からないため）
 - CloudSearch は、AWS で非推奨になっています。元の構成表に載っているため、含めました。検索の要求は、料金表に別の課金の項目が見当たらなかったため、含めていません
 - 消費税
 - 割引（Savings Plans、リザーブドインスタンス）
