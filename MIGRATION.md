@@ -61,7 +61,7 @@
 | 7.3 | （フェーズ1までに）SBOM、署名、OpenSSF Scorecard | 未着手 |
 | 8.1 | 旧実装のファイル数・行数・依存パッケージ数（[docs/legacy-measurement.md](docs/legacy-measurement.md)） | ✅ 完了 |
 | 8.2 | 旧構成（15コンテナ、ALB、Nginx、Aurora）の月額の見積もり（[docs/legacy-cost-estimate.md](docs/legacy-cost-estimate.md)） | ✅ 完了 |
-| 8.3 | 測定の基準（所要時間）。旧実装の clone と npm ci が必要（[Issue #28](https://github.com/autonomy-local/funadansu/issues/28)） | 未着手（保留） |
+| 8.3 | 測定の基準（所要時間。旧 catalog の一括登録、[docs/legacy-timing.md](docs/legacy-timing.md)。検証用の DB で測った。[Issue #28](https://github.com/autonomy-local/funadansu/issues/28)） | ✅ 完了 |
 
 ## 単位の状況
 
