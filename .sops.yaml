@@ -1,0 +1,5 @@
+# sops の設定。秘密情報は、ここの age の公開鍵で暗号化した secrets/ の下のファイルだけに置きます。
+# 秘密鍵（age の鍵ファイル）はリポジトリに入れません（docs/operations/secrets.md）。
+creation_rules:
+  - path_regex: ^secrets/.*\.yaml$
+    age: age1lg6m27s94j03wzv9h2zesfq5hu6asmk0tksdse4xuqk42me57qysg799p8

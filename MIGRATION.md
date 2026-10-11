@@ -47,19 +47,21 @@
 | 4.2 | Hono の proxy の骨組み（Workers と Bun の両方で動く、Go への中継、JWT の検査の見本） | ✅ 完了 |
 | 4.3 | bootstrap：Go と proxy（Bun）のコンテナイメージを Nix でビルド | ✅ 完了 |
 | 4.4 | bootstrap：エンドポイントのテスト（接続先を URL で切り替え。`test/api/run.sh`、[bootstrap/README.md](bootstrap/README.md)） | ✅ 完了（ローカルで GREEN） |
-| 4.5 | bootstrap：疎通（ローカル、リモート） | 未着手 |
-| 5.1〜5.3 | IaC（Pulumi、sops、dev のスタック） | 未着手 |
+| 4.5 | bootstrap：疎通（ローカル、リモート）。リモートは 5.3 の構成が要る（[Issue #20](https://github.com/autonomy-local/funadansu/issues/20)） | 未着手 |
+| 5.1 | GCP のプロジェクト、Cloudflare、Pulumi の状態の置き場所（外部の準備。[Issue #17](https://github.com/autonomy-local/funadansu/issues/17)） | 未着手（外部の準備が要る） |
+| 5.2 | sops と age の設定、JWT の鍵（dev のダミー）の暗号化（[docs/operations/secrets.md](docs/operations/secrets.md)） | ✅ 完了（[Issue #18](https://github.com/autonomy-local/funadansu/issues/18)） |
+| 5.3 | Pulumi のスタック（dev）：Artifact Registry、Cloud Run、Workers、シークレットの配布（外部の準備が要る。[Issue #19](https://github.com/autonomy-local/funadansu/issues/19)） | 未着手（外部の準備が要る） |
 | 5.4 | 最小のデプロイの手順（ローカルの CI → `pulumi up`・`nixos-rebuild`）と運用の手引きの初版（`docs/operations/`） | 未着手 |
 | 6.1 | 旧 OpenAPI を `openapi/legacy/` に集める（取得元のコミットを [openapi/README.md](openapi/README.md) に記録） | ✅ 完了 |
 | 6.2 | 旧基盤の E2E の書き換え（operator と access-control、catalog、notification、book-manage の一部）。残りの単位は試験の分類のみ | 作業中（[docs/units/](docs/units/README.md)） |
 | 6.3 | 旧基盤の E2E（URL の切り替え、Funadansu に向けて全部 RED） | ✅ 完了 |
 | 6.4 | （推奨）旧実装のベースライン（[docs/e2e-baseline.md](docs/e2e-baseline.md)。厳密 11 / 32、差分台帳 D-018） | ✅ 完了 |
-| 7.1 | CI | 未着手 |
+| 7.1 | CI（GitHub Actions、Nix の開発シェル。`check` は Go・proxy・Bootstrap のシナリオ、`legacy-e2e` は旧 E2E の通過数を出し、落ちても CI は落とさない。[.github/workflows/ci.yml](.github/workflows/ci.yml)） | ✅ 完了（[Issue #25](https://github.com/autonomy-local/funadansu/issues/25)。Nix の開発シェルでの緑は、PR の CI で確かめる。この環境からは flake の入力を取れなかった） |
 | 7.2 | 脆弱性と秘密情報の検査（govulncheck、CodeQL・gosec、秘密情報の検出、Actions の SHA 固定と最小権限、Renovate） | 未着手 |
 | 7.3 | （フェーズ1までに）SBOM、署名、OpenSSF Scorecard | 未着手 |
 | 8.1 | 旧実装のファイル数・行数・依存パッケージ数（[docs/legacy-measurement.md](docs/legacy-measurement.md)） | ✅ 完了 |
 | 8.2 | 旧構成（15コンテナ、ALB、Nginx、Aurora）の月額の見積もり（[docs/legacy-cost-estimate.md](docs/legacy-cost-estimate.md)） | ✅ 完了 |
-| 8.3 | 測定の基準（所要時間） | 未着手 |
+| 8.3 | 測定の基準（所要時間。旧 catalog の一括登録、[docs/legacy-timing.md](docs/legacy-timing.md)。検証用の DB で測った。[Issue #28](https://github.com/autonomy-local/funadansu/issues/28)） | ✅ 完了 |
 
 ## 単位の状況
 
