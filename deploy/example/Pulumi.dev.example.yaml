@@ -1,0 +1,7 @@
+# 見本のスタック設定。値は見本（実在の ID ではない）。
+config:
+  gcp:project: example-project-id
+  gcp:region: asia-northeast1
+  funadansu:cloudflareAccountId: <アカウント ID>
+  funadansu:stateBucket: <GCS バケット名>
+  funadansu:funadansuRef: <本体のタグかコミット>

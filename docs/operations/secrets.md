@@ -1,6 +1,8 @@
 # 鍵の管理（sops と age）
 
-フェーズ0の 5.2（[Issue #18](https://github.com/autonomy-local/funadansu/issues/18)）の手引きです。秘密情報の正本は、リポジトリの中の 1 か所（`secrets/`）だけに置きます。各実行環境への配布は 5.3 で扱います。
+フェーズ0の 5.2（[Issue #18](https://github.com/autonomy-local/funadansu/issues/18)）の手引きです。
+
+> **方針の改訂（[ADR-0009](../decisions/0009-リポジトリの分離.md)、[ADR-0010](../decisions/0010-秘密情報の正本と配布.md)、提案中）**：秘密情報の正本は、非公開のデプロイ用リポジトリの `secrets/` の 1 か所です。本体（公開）には、暗号化した秘密情報も `.sops.yaml` の実在の宛先も置きません。下の手順は、移行の作業（dev のダミーを確かめる手順）として残しています。公開の前に、`secrets/` と `.sops.yaml` は非公開のデプロイ用リポジトリへ移します（[公開の前の確認](public-repo-checklist.md)）。
 
 ## 仕組み
 
