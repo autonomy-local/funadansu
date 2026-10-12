@@ -1,4 +1,4 @@
-// JWT の検査の見本。署名方式は検査する側で固定し、トークンのヘッダーの alg を信じない（ADR 0007）。
+// JWT の検査の見本。署名方式は検査する側で固定し、トークンのヘッダーの alg を信じない（ADR 0001）。
 // Web Crypto だけを使うので、Cloudflare Workers と Bun の両方で動く。
 
 export type JwtKey = {

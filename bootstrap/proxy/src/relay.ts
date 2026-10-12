@@ -24,7 +24,7 @@ const hopByHop = new Set([
 ]);
 
 // relay は、受け取ったリクエストを Go のサービスへそのまま渡し、応答を返す。
-// Authorization は落とさない。サービスでも JWT の署名を検査するため（ADR 0007）。
+// Authorization は落とさない。サービスでも JWT の署名を検査するため（ADR 0001）。
 export function relay(options: RelayOptions): Handler {
   return async (c: Context) => {
     const incoming = new URL(c.req.url);

@@ -1,5 +1,5 @@
 # 見本。運用者の公開鍵に置き換える（値は見本で、実在の鍵ではない）。
-# dev は age の鍵を 2 人以上が持つ。本番は Cloud KMS とオフラインの age の 2 つを宛先にする（ADR-0010）。
+# dev は age の鍵を 2 人以上が持つ。本番は Cloud KMS とオフラインの age の 2 つを宛先にする（ADR-0003）。
 creation_rules:
   - path_regex: ^secrets/dev\.yaml$
     age: age1example000000000000000000000000000000000000000000000000000

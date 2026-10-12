@@ -430,7 +430,7 @@ srv := &http.Server{
   - 環境変数 `GOMEMLIMIT` が既にあれば、それを優先し、アプリでは上書きしません。このとき `memory_source` は `env` と書きます（Go が起動時に読んだ値をそのまま使うため。見本は `bootstrap/internal/platform/runtime.go`）。
 - **起動時の system ログ**：版と実行の設定を1行で出します。キーは `go_version`、`gomaxprocs`、`gomemlimit`（バイト数、または `off`）、`memory_source`（`env`、`config`、`cgroup`、`none` のどれか）です。
 - **設定の検証**：必須の値が無い、または形が不正なら、すぐに終了します。エラーには値を出さず、キーの名前だけを出します。
-- **待ち受け**：既定は `127.0.0.1` で待ち受けます（ADR 0007 の経路の制限）。Cloud Run では `FUNADANSU_ADDR` を `0.0.0.0:$PORT` と明示して設定します。
+- **待ち受け**：既定は `127.0.0.1` で待ち受けます（ADR 0001 の経路の制限）。Cloud Run では `FUNADANSU_ADDR` を `0.0.0.0:$PORT` と明示して設定します。
 - **終了**：`signal.NotifyContext` で SIGINT と SIGTERM を受け、`http.Server.Shutdown` に時限を付けます。時限は `FUNADANSU_SHUTDOWN_TIMEOUT` で持ち、初期値は 8 秒です（Cloud Run の猶予 10 秒に収めるため）。DB の接続は、サーバーを止めたあとに閉じます。
 - **ヘルスチェック**：`/healthz`（生存の確認。DB に触れない）と `/readyz`（DB の ping。短い時限）を分けて持ちます。どちらも proxy では公開しません。
 - **リクエストの量**：サービス側でも `http.MaxBytesReader` で本文の上限を決めます。proxy の制限だけに頼りません。
@@ -449,7 +449,7 @@ srv := &http.Server{
 
 - **リリースのビルド**：`CGO_ENABLED=0` と `-trimpath` で作ります。`-s -w` は付けません（障害の調査のため）。
 - **テスト**：`go test -race` は CGO を使うため、テストだけ `CGO_ENABLED=1` で回します。リリースのビルドとは分けます。
-- **CI の検査**：`gofmt -l`（差分が出たら失敗）、`go vet`、`staticcheck`、`go mod tidy` の差分の確認、`go mod verify` を入れます。`govulncheck` は ADR 0007 の CI の項目として入れます。
+- **CI の検査**：`gofmt -l`（差分が出たら失敗）、`go vet`、`staticcheck`、`go mod tidy` の差分の確認、`go mod verify` を入れます。`govulncheck` は ADR 0001 の CI の項目として入れます。
 - **CI の実行環境**：Nix の開発シェルと同じ `go` を使います。CI で別の版を入れないようにします。
 
 ### 既定の選択

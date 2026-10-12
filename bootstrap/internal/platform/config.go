@@ -9,7 +9,7 @@ import (
 
 // Config は起動時の設定です。main で一度だけ読み、各部品にはコンストラクタの引数で渡します。
 type Config struct {
-	Addr               string        // 待ち受け先。既定は localhost（ADR 0007）
+	Addr               string        // 待ち受け先。既定は localhost（ADR 0001）
 	DatabaseURL        string        // PostgreSQL の接続先（必須）
 	DBMaxConns         int           // 接続プールの上限
 	DBStatementTimeout time.Duration // 接続ごとの statement_timeout
