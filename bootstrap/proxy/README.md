@@ -7,7 +7,7 @@ Funadansu の入口です。**同じコード**（`src/app.ts`）を、Cloudflar
 | 場所 | 中身 |
 | --- | --- |
 | `src/app.ts` | `createApp(deps)`。認証と中継の配線 |
-| `src/auth/jwt.ts` | JWT の検査。署名方式は固定（HS256）。トークンの `alg` は信じない（[ADR 0007](../../docs/decisions/0007-セキュリティの設計方針.md)） |
+| `src/auth/jwt.ts` | JWT の検査。署名方式は固定（HS256）。トークンの `alg` は信じない（[ADR 0001](../../docs/decisions/0001-セキュリティの設計方針.md)） |
 | `src/relay.ts` | Go のサービスへの中継。`Authorization` を落とさず渡す（サービスでも署名を検査するため） |
 | `src/config.ts` | 環境変数の読み込み。エラーには値を出さず、キーの名前だけを出す |
 | `src/entry/bun.ts` | コンテナ（Bun）の入口 |

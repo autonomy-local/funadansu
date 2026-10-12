@@ -6,7 +6,7 @@
 - フェーズの定義：[docs/migration-phases.md](docs/migration-phases.md)
 - 単位の一覧と引き継ぎファイル：[docs/units/](docs/units/README.md)
 - 差分台帳：[docs/spec-deviations.md](docs/spec-deviations.md)
-- セキュリティ：[ADR 0007](docs/decisions/0007-セキュリティの設計方針.md)、[脅威モデル](docs/security/threat-model.md)、[運用の手引き](docs/operations/README.md)
+- セキュリティ：[ADR 0001](docs/decisions/0001-セキュリティの設計方針.md)、[脅威モデル](docs/security/threat-model.md)、[運用の手引き](docs/operations/README.md)
 
 ## いまのフェーズ
 
@@ -42,7 +42,7 @@
 | 3.1 | 規約の決定：ディレクトリとパッケージの構成、命名、DI を使わない配線（`docs/conventions.md` の本文 1〜3 節） | ✅ 完了 |
 | 3.2 | 規約の決定：ID・エラー・ログの形（`docs/conventions.md` の本文 7〜9 節） | ✅ 完了 |
 | 3.3 | 規約の決定：テストの方針、「外に出す関数の一覧」の書式（`docs/conventions.md` の本文 5・6 節） | ✅ 完了 |
-| 3.4 | セキュリティの設計方針（ADR 0007）と脅威モデル（`docs/security/threat-model.md`） | ✅ 完了 |
+| 3.4 | セキュリティの設計方針（ADR 0001）と脅威モデル（`docs/security/threat-model.md`） | ✅ 完了 |
 | 4.1 | bootstrap：Go のサービスの骨組み（`bootstrap/`。platform と見本のエンドポイント1本） | ✅ 完了 |
 | 4.2 | Hono の proxy の骨組み（Workers と Bun の両方で動く、Go への中継、JWT の検査の見本） | ✅ 完了 |
 | 4.3 | bootstrap：Go と proxy（Bun）のコンテナイメージを Nix でビルド | ✅ 完了 |
