@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | --- | --- |
 | 状態 | accepted（採用） |
-| 日付 | 2026-11-05 |
+| 日付 | 2026-11-05（検証結果を 2026-11-06 に追記） |
 | 関連 Issue | なし |
 | 関連 ADR | ADR-0004（決定 2 の候補に加える。0004 の決定は変えない）、ADR-0001（依存の最小化） |
 
@@ -27,12 +27,17 @@ OSS の候補として pocket-id（https://github.com/pocket-id/pocket-id、BSD 
 - pocket-id は既定で `email` や `name` をクレームに含む。ADR-0004 の決定 6（個人情報を預けない）に合わせ、スコープとクレームを絞る設定が必要
 - 組み込みを選ぶ場合は、この ADR を覆す新しい ADR が必要（依存の増加が ADR-0001 に反する）
 
-## 実装の前に確かめる事項
+## 検証結果（2026-11-06、pocket-id 2.19.2 を手元で起動して確かめた）
 
-1. pocket-id を Docker で立て、Go の検証が ADR-0004 の決定 3・4 を満たすかを確かめる（`iss` の完全一致、`alg` の許可リスト、JWKS のキャッシュ、`kid` の取り直しの下限）
-2. アクセストークンの `aud` と、ID トークンの違いを確かめる（ADR-0004 の確認事項 4）
-3. `openid` だけのスコープで、氏名を含まないクレームにできるかを確かめる（ADR-0004 の確認事項 3）
-4. CockroachDB（フェーズ3）で pocket-id が動くかは未確認。DB は pocket-id 専用の別 DB にする（旧スキーマに触れない）
+ADR-0004 の確認事項に対する結果です。確認した範囲は、ローカルの pocket-id（SQLite、HTTP）と、テスト用のクライアント（PKCE 有効）です。
+
+1. **検証の共通部分**：discovery と JWKS を取得できる。署名方式は RS256（`id_token_signing_alg_values_supported` は RS256 のみ）。RS256 の署名、`kid` の照合、`iss` の完全一致、`exp` を確かめるだけで、検証できた。`alg` は許可リスト（RS256・ES256）で照合できる
+2. **旧 API の窓口の `sid`（ADR-0001）**：ID トークンにもアクセストークンにも `sid` がない。旧 API の窓口の例外を採るなら、`sid` は pocket-id から得られない。例外を採るかどうかは、この結果を前提に決める
+3. **個人情報のクレーム**：`scope=openid profile email` では、ID トークンに `email`、`name`、`given_name`、`family_name`、`display_name`、`picture`、`preferred_username` が入る。`scope=openid` だけでは、これらは入らず、`sub`・`amr`・`auth_time`・`nonce` などに絞れる。Funadansu は `openid` だけを要求すれば、ADR-0004 の決定 6 に合う
+4. **トークンの種類**：ID トークンは `typ: JWT`、アクセストークンは `typ: at+jwt` で、ヘッダーで見分けられる。ID トークンの `aud` は client_id、`nonce` あり。アクセストークンの `aud` は client_id と issuer の両方を含み、`client_id`・`scp`・`scope` を持つ。Funadansu は、トークンを受け取る経路（ID トークンかアクセストークンか）ごとに、`aud` と `typ` の期待値を決める
+5. **`sub`**：利用者の UUID（ログインのたびに同じ値）。`(issuer, sub)` から内部 ID を引く方式（ADR-0004 の決定 5）と合う
+
+まだ確かめていないこと：CockroachDB での動作、本番に近い HTTPS の設定（今回は HTTP）、refresh token の扱い、パスキーの復旧手順。
 
 ## 付録：調査の要点
 
